@@ -1,0 +1,8 @@
+Se necesitan tener instaladas las siguientes librerías de python:
+    numpy
+    tensorflow
+    keras
+    matplotlib
+    scikit-learn
+    python-chess
+    pandas
