@@ -41,7 +41,7 @@ chess-rl-engine
 Para instalar el proyecto, clona el repositorio e instala las dependencias necesarias:
 
 ```bash
-git clone <url-del-repositorio>
+git clone https://github.com/alx5409/Motor-de-ajedrez-RL.git
 cd chess-rl-engine
 pip install -r requirements.txt
 ```
