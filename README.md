@@ -9,6 +9,7 @@ chess-rl-engine
 ├── src
 │   ├── engine
 │   │   ├── tablero.py                  # Clase que representa el tablero de ajedrez
+|   |   ├── piezas.py                   # Archivo que aloja las clases de las piezas
 │   │   ├── generador_movimiento.py     # Generador de movimientos legales
 │   │   ├── evaluador.py                # Evaluador de posiciones del tablero
 │   │   └── main_engine.py              # Main del motor
