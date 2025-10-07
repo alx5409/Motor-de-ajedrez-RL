@@ -47,10 +47,22 @@ class Pieza:
 
     # Método para validar el movimiento entero de una pieza genérica
     def comprobar_movimiento_valido(self, movimiento: array, tablero):
+        """
+        Comprueba si el movimiento que se introduce es válido y si lo es devuelve True.
+        Args:
+            movimiento (array): Posicion de destino de la pieza como array de enteros.
+        Returns:
+            bool: True si el movimiento del peón es válido, False en otro caso.
+        """
         return (movimiento[0] in range(8)) and (movimiento[1] in range(8))
 
     # Método para mover una pieza genérica
     def mover_pieza(self, movimiento: list, tablero):
+        """
+        Mueve una pieza tras comprobar que el movimiento es válido.
+        Args:
+            movimiento (list): Movimiento en formato estándar.
+        """
         movimiento_transformado = self.transformar_estandar_a_entero(movimiento)
         if (self.comprobar_movimiento_valido(movimiento_transformado, tablero)):
             self.posicion_actual_entera[0] = movimiento_transformado[0]
@@ -59,6 +71,8 @@ class Pieza:
     def capturar(self):
         """
         Devuelve el valor relativo de la pieza para sumar al oponente.
+        Returns:
+            valor_relativo (int): valor relativo de la pieza
         """
         return self._valor_relativo
 
@@ -69,13 +83,6 @@ class Peon(Pieza):
         self._valor_relativo = 1
 
     def comprobar_movimiento_valido(self, movimiento, tablero):
-        """
-        Comprueba si el movimiento que se introduce es válido y si lo es devuelve True.
-        Args:
-            movimiento (array): Posicion de destino de la pieza como array de enteros.
-        Returns:
-            bool: True si el movimiento del peón es válido, False en otro caso.
-        """
         columna_actual, fila_actual = self.posicion_actual_entera
         columna_destino, fila_destino = movimiento
         esta_ocupada: bool = False
@@ -156,6 +163,17 @@ class Caballo(Pieza):
     def __init__(self, color):
         super().__init__(color)
         self._valor_relativo = 3   
+
+    def comprobar_movimiento_valido(self, movimiento, tablero):
+        fila_destino = movimiento[0]
+        columna_destino = movimiento[1]
+        casilla_destino_ocupada: bool = False
+
+        if (tablero[fila_destino][columna_destino] != 0):
+            casilla_destino_ocupada = True
+        
+        
+        return False
 
 class Alfil(Pieza):
     
