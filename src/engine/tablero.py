@@ -5,8 +5,7 @@ distribución como la vista del tablero, la gestión de las piezas.
 from enum import Enum
 from array import array
 import numpy as np
-from piezas import Peon, Caballo, Alfil, Torre, Dama, Rey
-from piezas import Color
+from piezas import Alfil, Caballo, Dama, Peon, Color, Rey, Torre
 
 class EstadoCasilla(Enum):
     LIBRE = 0

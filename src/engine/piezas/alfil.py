@@ -1,7 +1,7 @@
 import numpy as np
 from array import array
 
-from pieza import Color, Pieza
+from piezas import Color, Pieza
 
 class Alfil(Pieza):
 
