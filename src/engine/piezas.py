@@ -45,6 +45,11 @@ class Pieza:
         posicion_transformada[1] = int(posicion[1]) - 1
         return posicion_transformada
 
+    # Método para ver si el movimiento está dentro del tablero
+    def esta_dentro_tablero(self, movimiento: array):
+        return (movimiento[0] in range(8)) and (movimiento[1] in range(8))
+
+
     # Método para validar el movimiento entero de una pieza genérica
     def comprobar_movimiento_valido(self, movimiento: array, tablero):
         """
@@ -54,7 +59,7 @@ class Pieza:
         Returns:
             bool: True si el movimiento del peón es válido, False en otro caso.
         """
-        return (movimiento[0] in range(8)) and (movimiento[1] in range(8))
+        return self.esta_dento_tablero(self, movimiento, tablero)
 
     # Método para mover una pieza genérica
     def mover_pieza(self, movimiento: list, tablero):
@@ -83,55 +88,60 @@ class Peon(Pieza):
         self._valor_relativo = 1
 
     def comprobar_movimiento_valido(self, movimiento, tablero):
-        columna_actual, fila_actual = self.posicion_actual_entera
-        columna_destino, fila_destino = movimiento
-        esta_ocupada: bool = False
-
-        # Comprueba que el movimiento está dentro del tablero
-        if not(columna_destino in range(8) and fila_destino in range(8)):
-            # print("Movimiento fuera de los límites del tablero.")
+        # Primero comprueba si el movimiento está dentro del tablero
+        if not super().esta_dentro_tablero(movimiento, tablero):
             return False
 
-        if self._color == Color.BLANCA:
-            direccion = 1
-        else:
-            direccion = -1
+        columna_actual, fila_actual = self.posicion_actual_entera
+        columna_destino, fila_destino = movimiento
 
-        if self._color == Color.BLANCA:
-            fila_inicial = 1
-        else:
-            fila_inicial = 6
+        direccion = 1 if self._color == Color.BLANCA else -1
+        fila_inicial = 1 if self._color == Color.BLANCA else 6
 
-        # Comprueba si la casilla a la que se quiere mover está ocupada
-        if tablero[fila_destino, columna_destino] != 0:
-            esta_ocupada = True
+        casilla_destino = tablero[fila_destino, columna_destino]
+        destino_esta_ocupado = casilla_destino != 0
 
         # Avanza una casilla hacia delante
-        if (columna_destino == columna_actual and
-             fila_destino == fila_actual + direccion and
-             not esta_ocupada):
+        es_avance_simple = (
+            columna_destino == columna_actual and
+            fila_destino == fila_actual + direccion and
+            not destino_esta_ocupado
+        )
+        if es_avance_simple:
             return True
-        
-        # Avanza dos casillas hacia delante si es su primer movimiento
-        if (columna_destino == columna_actual and
+
+        # Avanza dos casillas desde la posición inicial
+        es_avance_doble = (
+            columna_destino == columna_actual and
             fila_actual == fila_inicial and
             fila_destino == fila_actual + 2 * direccion and
-            tablero[fila_actual + 2 *direccion, columna_destino] == 0 and
-            tablero[fila_actual + direccion, columna_destino] == 0):
+            tablero[fila_actual + direccion, columna_destino] == 0 and
+            casilla_destino == 0
+        )
+        if es_avance_doble:
             return True
-        
-        # Avanza en diagonal si hay una pieza en medio y es una pieza enemiga
-        if (abs(columna_destino - columna_actual) == 1 and
-            fila_destino == fila_actual + direccion):
-            casilla = tablero[fila_destino, columna_destino]
-            if (self._color == Color.BLANCA and casilla == -1) or (self._color == Color.NEGRA and casilla == 1):
+
+        # Captura en diagonal
+        es_diagonal = (
+            abs(columna_destino - columna_actual) == 1 and
+            fila_destino == fila_actual + direccion
+        )
+        if es_diagonal:
+            es_enemigo = (
+                (self._color == Color.BLANCA and casilla_destino == -1) or
+                (self._color == Color.NEGRA and casilla_destino == 1)
+            )
+            if es_enemigo:
                 return True
-        
-        # print("Movimiento no válido.")
+
         return False
     
     def puede_transformarse(self):
-        _, fila_actual = self.posicion_actual_entera
+        """
+        Comprueba si el peón ha llegado a la última fila, en ese caso devuelve True.
+        Devuelve False en caso contrario.
+        """
+        fila_actual, _ = self.posicion_actual_entera    # Se ignora la columna, solo usa fila
         if ((self._color == Color.BLANCA and fila_actual == 7) or
             (self._color == Color.NEGRA and fila_actual == 0)):
             return True
@@ -139,7 +149,6 @@ class Peon(Pieza):
     
     def transformarse(self):
         if not self.puede_transformarse():
-            print("El peón aún no puede transformarse.")
             return None
         
         print("En qué pieza quieres transformar el peón.")
@@ -148,15 +157,15 @@ class Peon(Pieza):
 
         if opcion == "1":
             return Dama(self._color)
-        elif opcion == "2":
+        if opcion == "2":
             return Torre(self._color)
-        elif opcion == "3":
+        if opcion == "3":
             return Alfil(self._color)
-        elif opcion == "4":
+        if opcion == "4":
             return Caballo(self._color)
-        else:
-            print("Opción no válida. Se transforma a Dama por defecto.")
-            return Dama(self._color)
+        
+        print("Opción no válida. Se transforma a Dama por defecto.")
+        return Dama(self._color)
     
 class Caballo(Pieza):
 
@@ -165,14 +174,18 @@ class Caballo(Pieza):
         self._valor_relativo = 3   
 
     def comprobar_movimiento_valido(self, movimiento, tablero):
+        if not(self.esta_dentro_tablero(movimiento, tablero)):
+            return False
+        
         fila_destino = movimiento[0]
         columna_destino = movimiento[1]
-        casilla_destino_ocupada: bool = False
+        casilla_destino_esta_ocupada: bool = False
 
-        if (tablero[fila_destino][columna_destino] != 0):
-            casilla_destino_ocupada = True
+        if (tablero[fila_destino, columna_destino] != 0):
+            casilla_destino_esta_ocupada = True
         
-        
+
+
         return False
 
 class Alfil(Pieza):
@@ -180,6 +193,16 @@ class Alfil(Pieza):
     def __init__(self, color):
         super().__init__(color)
         self._valor_relativo = 3   
+
+    def comprobar_movimiento_valido(self, movimiento, tablero):
+        if not(self.esta_dentro_tablero(movimiento, tablero)):
+            return False
+        
+        fila_destino = movimiento[0]
+        columna_destino = movimiento[1]
+        fila_actual = self.posicion_actual_entera[0]
+        columna_actual = self.posicion_actual_entera[1]
+
 
 class Torre(Pieza):
     
