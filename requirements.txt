@@ -1,4 +1,4 @@
-Se necesitan tener instaladas las siguientes librerías de python:
+# Se necesitan tener instaladas las siguientes librerías de python:
     numpy
     tensorflow
     keras

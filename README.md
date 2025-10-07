@@ -9,6 +9,7 @@ chess-rl-engine
 ├── src
 │   ├── engine
 │   │   ├── tablero.py                  # Clase que representa el tablero de ajedrez
+|   |   ├── piezas.py                   # Archivo que aloja las clases de las piezas
 │   │   ├── generador_movimiento.py     # Generador de movimientos legales
 │   │   ├── evaluador.py                # Evaluador de posiciones del tablero
 │   │   └── main_engine.py              # Main del motor
@@ -40,7 +41,7 @@ chess-rl-engine
 Para instalar el proyecto, clona el repositorio e instala las dependencias necesarias:
 
 ```bash
-git clone <url-del-repositorio>
+git clone https://github.com/alx5409/Motor-de-ajedrez-RL.git
 cd chess-rl-engine
 pip install -r requirements.txt
 ```
