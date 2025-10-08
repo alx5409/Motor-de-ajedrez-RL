@@ -7,7 +7,7 @@ from array import array
 import numpy as np
 import copy
 
-from piezas import Alfil, Caballo, Dama, Peon, Color, Rey, Torre
+from piezas import Alfil, Caballo, Dama, Peon, Pieza, Color, Rey, Torre
 
 class EstadoCasilla(Enum):
     LIBRE = 0
@@ -90,8 +90,8 @@ class Tablero:
         """
         Mueve una pieza de la posicion actual a la posicion de destino si el movimiento es válido.
         """
-        pieza = self._matriz_piezas[posicion_actual[0]][posicion_actual[1]]
-        if pieza and pieza.movimiento_valido(posicion_destino):                     # Comprueba si el movimiento es válido
+        pieza: Pieza = self._matriz_piezas[posicion_actual[0]][posicion_actual[1]]
+        if pieza and pieza.comprobar_movimiento_valido(posicion_destino):           # Comprueba si el movimiento es válido
             self._matriz_piezas[posicion_destino[0]][posicion_destino[1]] = pieza       # Mueve la pieza a la nueva posición
             self._matriz_piezas[posicion_actual[0]][posicion_actual[1]] = None          # Actualiza la posición de la pieza    
             return True
