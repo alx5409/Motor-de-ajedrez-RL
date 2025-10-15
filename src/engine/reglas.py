@@ -1,6 +1,6 @@
 from array import array
 
-from piezas import Alfil, Caballo, Color, Rey, Pieza, Peon
+from piezas import Alfil, Caballo, Color, Rey, Pieza, Peon, Torre
 from tablero import Tablero
 
 class Reglas:
@@ -28,13 +28,13 @@ class Reglas:
         Devuelve True si el rey del color está en jaque mate, False en caso contrario.
         """
         # Comprueba si el rey del color está en jaque.
-        if (not self.es_jaque()):
+        if (not self.es_jaque(color)):
             return False
         
         # Comprueba si todas las piezas del color tienen las casillas de los movimientos validos del rey en objetivo
         piezas_propias = self.tablero.listar_piezas_por_color(color)
         for pieza in piezas_propias:
-            # Prueba todos los movimientos posibles en el tablero
+            # Prueba todos los movimientos posibles para todas las piezas del color dado
             for fila in range(8):
                 for columna in range(8):
                     destino = array('i', [fila, columna])
@@ -55,7 +55,7 @@ class Reglas:
         """
         if self.es_jaque(color):
             return False
-        # Comprueba exhaustivamente todos los movimientos validos de todas las piezas del color del tablero
+        # Comprueba exhaustivamente todos los movimientos validos de todas las piezas del color dado
         piezas_propias = self.tablero.listar_piezas_por_color(color)
         for pieza in piezas_propias:
             for fila in range(8):
@@ -107,8 +107,42 @@ class Reglas:
         
         return True
         
-    def puede_enrocar(self, color: Color, lado:str) -> bool:
-        pass
+    def puede_enrocar(self, color: Color, lado: str) -> bool:
+        """
+        Devuelve True si el jugador del color dado puede enrocar en el lado especificado ('corto' o 'largo').
+        """
+        # Busca el rey y las torres
+        rey :Rey = self.tablero.buscar_rey(color)
+        if not rey or rey.se_ha_movido:
+            return False
+
+        fila = rey.posicion_actual_entera[0]
+        if lado == "corto":
+            torre_col = 7
+            cols_entre = [5, 6]
+        elif lado == "largo":
+            torre_col = 0
+            cols_entre = [1, 2, 3]
+        else:
+            return False
+
+        torre :Torre = self.tablero.matriz_piezas[fila][torre_col]
+        if not torre or not isinstance(torre, Torre) or torre.se_ha_movido:
+            return False
+
+        # Comprobar que no hay piezas entre el rey y la torre
+        for col in cols_entre:
+            if self.tablero.matriz_piezas[fila][col] is not None:
+                return False
+
+        # Comprobar que el rey no está en jaque, ni pasa por ni termina en jaque
+        for col in ([4] + cols_entre if lado == "largo" else [4, 5, 6]):
+            tablero_simulado = self.simular_movimiento(rey, array('i', [fila, col]))
+            reglas_simuladas = Reglas(tablero_simulado)
+            if reglas_simuladas.es_jaque(color):
+                return False
+
+        return True
 
     def puede_capturar_al_paso(self, peon: Peon) -> bool:
         pass

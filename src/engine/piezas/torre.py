@@ -11,6 +11,7 @@ class Torre(Pieza):
         """
         super().__init__(color)
         self._valor_relativo = 5
+        self.se_ha_movido = False        # Se usa para comprobar si se puede enrocar
 
     def comprobar_movimiento_valido(self, movimiento: array, tablero: np.ndarray) -> bool:
         """
