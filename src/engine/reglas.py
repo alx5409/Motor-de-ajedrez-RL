@@ -1,6 +1,6 @@
 from array import array
 
-from piezas import Color, Rey, Pieza, Peon
+from piezas import Alfil, Caballo, Color, Rey, Pieza, Peon
 from tablero import Tablero
 
 class Reglas:
@@ -17,7 +17,7 @@ class Reglas:
 
         posicion_rey = rey.posicion_actual_entera
         piezas_oponentes = self.tablero.listar_piezas_por_color(Color.NEGRA if color == Color.BLANCA else Color.BLANCA)
-
+        #Comprueba que las piezas tienen un movimiento valido en la posición del rey
         for pieza in piezas_oponentes:
             if pieza.comprobar_movimiento_valido(posicion_rey, self.tablero.matriz_piezas):
                 return True
@@ -68,10 +68,28 @@ class Reglas:
                     reglas_simuladas = Reglas(tablero_simulado)
                     if not reglas_simuladas.es_jaque(color):
                         return False
+                    
         return True
 
     def es_tablas(self) -> bool:
-        pass
+        """
+        Devuelve True si la partida es tablas (ahogado o material insuficiente).
+        """
+        # Tablas si los dos jugadores están ahogados
+        if self.es_ahogado(Color.BLANCA) or self.es_ahogado(Color.NEGRA):
+            return True
+
+        # Tablas por material insuficiente
+        piezas = [pieza for fila in self.tablero.matriz_piezas for pieza in fila if pieza is not None]
+        if all(isinstance(pieza, (Rey, Alfil, Caballo)) for pieza in piezas):
+            # Solo reyes
+            if all(isinstance(pieza, Rey) for pieza in piezas):
+                return True
+            # Rey vs rey + alfil o rey vs rey + caballo
+            if len(piezas) == 3 and any(isinstance(pieza, (Alfil, Caballo)) for pieza in piezas):
+                return True
+        return False
+        # TODO Añadir comprobacion de la regla de los 50 movimientos y repetición de posición
 
     def es_movimiento_legal(self, pieza: Pieza, destino: array) -> bool:
         pass
