@@ -18,9 +18,9 @@ class Tablero:
     matriz_coordenadas_estandar: list[list]  # Coordenadas estándar
     matriz_coordenadas_enteras: np.ndarray   # Representación con coordenadas enteras para la lógica
 
-    def __init__(self):           
+    def __init__(self):     
         self._matriz_piezas = [[None for _ in range(8)] for _ in range(8)]  # Matriz de referencias a las piezas
-
+        self.historial: list[tuple[Pieza, array, array]] = []               # Lista del historial de los movimientos de las piezas      
         # Peones
         for col in range(8):
             peon_blanco = Peon(Color.BLANCA)
@@ -78,7 +78,14 @@ class Tablero:
         rey_negro = Rey(Color.NEGRA)
         rey_negro.posicion_actual_entera = array('i', [7, 4])
         self._matriz_piezas[7][4] = rey_negro
-
+    
+    @property
+    def matriz_piezas(self):
+        """
+        Método getter que devuelve la matriz de las piezas.
+        """
+        return self._matriz_piezas
+    
     def mostrar_tablero(self):
         """
         Imprime el tablero en la consola.
@@ -127,8 +134,8 @@ class Tablero:
         """
         return copy.deepcopy(self)
     
-    def listar_piezas_por_color(self, color: Color):
+    def listar_piezas_por_color(self, color: Color) -> list[Pieza]:
         """
-        Devuelve una lista de todas las piezas en el tablero.
+        Devuelve una lista de todas las piezas del color especificado en el tablero.
         """
-        return [pieza for fila in self._matriz_piezas for pieza in fila if pieza and pieza.color == color]
+        return [pieza for fila in self._matriz_piezas for pieza in fila if isinstance(pieza, Pieza) and pieza.color == color]
