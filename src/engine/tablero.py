@@ -18,9 +18,9 @@ class Tablero:
     matriz_coordenadas_estandar: list[list]  # Coordenadas estándar
     matriz_coordenadas_enteras: np.ndarray   # Representación con coordenadas enteras para la lógica
 
-    def __init__(self):           
+    def __init__(self):     
         self._matriz_piezas = [[None for _ in range(8)] for _ in range(8)]  # Matriz de referencias a las piezas
-
+        self.historial: list[tuple[Pieza, array, array]] = []               # Lista del historial de los movimientos de las piezas      
         # Peones
         for col in range(8):
             peon_blanco = Peon(Color.BLANCA)

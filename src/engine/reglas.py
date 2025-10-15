@@ -145,7 +145,47 @@ class Reglas:
         return True
 
     def puede_capturar_al_paso(self, peon: Peon) -> bool:
-        pass
-    
+        """
+        Devuelve True si el peón puede capturar al paso según el estado actual del tablero.
+        """
+        # Comprobar que hay historial suficiente
+        if not hasattr(self.tablero, "historial") or not self.tablero.historial:
+            return False
+        
+        ultimo_mov = self.tablero.historial[-1]
+        pieza_movida, origen, destino = ultimo_mov  # origen y destino son arrays [fila, columna]
+
+        # El último movimiento debe ser de un peón que avanza dos casillas
+        if not isinstance(pieza_movida, Peon):
+            return False
+        if pieza_movida._color == peon._color:
+            return False
+
+        # El peón rival debe estar en la columna adyacente y en la misma fila que el peón actual
+        fila_peon, col_peon = peon.posicion_actual_entera
+        fila_destino, col_destino = destino
+
+        # El peón rival debe haber avanzado dos filas en un solo movimiento
+        if abs(fila_destino - origen[0]) != 2:
+            return False
+
+        # El peón rival debe estar en la misma fila que el peón actual
+        if fila_destino != fila_peon:
+            return False
+
+        # Deben estar en columnas adyacentes
+        if abs(col_destino - col_peon) != 1:
+            return False
+
+        # La casilla de captura al paso debe estar vacía y dentro del tablero
+        direccion = 1 if peon._color == Color.BLANCA else -1
+        fila_captura = fila_peon + direccion
+        if not (0 <= fila_captura < 8):
+            return False
+        if self.tablero.matriz_piezas[fila_captura][col_destino] is not None:
+            return False
+
+        return True
+
     def simular_movimiento(self, pieza: Pieza, destino: array) -> Tablero:
         pass
