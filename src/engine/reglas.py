@@ -1,4 +1,5 @@
 from array import array
+from copy import deepcopy
 
 from piezas import Alfil, Caballo, Color, Rey, Pieza, Peon, Torre
 from tablero import Tablero
@@ -188,4 +189,19 @@ class Reglas:
         return True
 
     def simular_movimiento(self, pieza: Pieza, destino: array) -> Tablero:
-        pass
+        """
+        Devuelve una copia del tablero tras simular el movimiento de la pieza al destino.
+        Al ser una copia, no modifica el tablero original.
+        """
+        tablero_copia = deepcopy(self.tablero)
+        origen = array('i', pieza.posicion_actual_entera)
+
+        # Elimina la pieza de la posición original
+        tablero_copia.matriz_piezas[origen[0]][origen[1]] = None
+
+        # Crea una copia de la pieza, actualiza su posición y colócala en el destino
+        pieza_copiada = deepcopy(pieza)
+        pieza_copiada.posicion_actual_entera = array('i', [destino[0], destino[1]])
+        tablero_copia.matriz_piezas[destino[0]][destino[1]] = pieza_copiada
+
+        return tablero_copia
