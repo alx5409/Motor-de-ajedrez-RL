@@ -55,7 +55,7 @@ class Reglas:
         """
         if self.es_jaque(color):
             return False
-
+        # Comprueba exhaustivamente todos los movimientos validos de todas las piezas del color del tablero
         piezas_propias = self.tablero.listar_piezas_por_color(color)
         for pieza in piezas_propias:
             for fila in range(8):
@@ -92,7 +92,20 @@ class Reglas:
         # TODO Añadir comprobacion de la regla de los 50 movimientos y repetición de posición
 
     def es_movimiento_legal(self, pieza: Pieza, destino: array) -> bool:
-        pass
+        """
+        Devuelve True si el movimiento es legal según las reglas.
+        """
+        # Comprueba si el movimiento de la pieza en particular es valido
+        if not pieza.comprobar_movimiento_valido(destino, self.tablero.matriz_piezas):
+            return False
+        
+        # Si es valido, comprueba si es legal, es decir que sale del jaque
+        tablero_simulado = self.simular_movimiento(pieza, destino)
+        reglas_simuladas = Reglas(tablero_simulado)
+        if reglas_simuladas.es_jaque(pieza._color):
+            return False
+        
+        return True
         
     def puede_enrocar(self, color: Color, lado:str) -> bool:
         pass
