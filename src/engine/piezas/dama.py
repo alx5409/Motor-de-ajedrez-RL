@@ -1,7 +1,8 @@
 import numpy as np
 from array import array 
 
-from piezas import Alfil, Color, Pieza, Torre
+from color import Color
+from piezas import Alfil, Pieza, Torre
 
 class Dama(Pieza):
     def __init__(self, color: Color):
