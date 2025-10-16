@@ -2,7 +2,6 @@
 Archivo que define las clases de las piezas de Ajedrez así como sus métodos.
 """
 from array import array
-from enum import Enum
 import numpy as np
 
 from color import Color

@@ -37,8 +37,8 @@ class Reglas:
         piezas_propias = self.tablero.listar_piezas_por_color(color)
         for pieza in piezas_propias:
             # Prueba todos los movimientos posibles para todas las piezas del color dado
-            for fila in range(8):
-                for columna in range(8):
+            for fila in range(self.tablero.DIM_TABLERO):
+                for columna in range(self.tablero.DIM_TABLERO):
                     destino = array('i', [fila, columna])
                     # Si el movimiento es legal y tras simularlo el rey no está en jaque, no es jaque mate
                     es_valido = pieza.comprobar_movimiento_valido(destino, self.tablero.matriz_piezas)
@@ -60,8 +60,8 @@ class Reglas:
         # Comprueba exhaustivamente todos los movimientos validos de todas las piezas del color dado
         piezas_propias = self.tablero.listar_piezas_por_color(color)
         for pieza in piezas_propias:
-            for fila in range(8):
-                for columna in range(8):
+            for fila in range(self.tablero.DIM_TABLERO):
+                for columna in range(self.tablero.DIM_TABLERO):
                     destino = array('i', [fila, columna])
                     es_valido = pieza.comprobar_movimiento_valido(destino, self.tablero.matriz_piezas)
                     if not es_valido:
@@ -182,7 +182,7 @@ class Reglas:
         # La casilla de captura al paso debe estar vacía y dentro del tablero
         direccion = 1 if peon._color == Color.BLANCA else -1
         fila_captura = fila_peon + direccion
-        if not (0 <= fila_captura < 8):
+        if not (0 <= fila_captura < self.tablero.DIM_TABLERO):
             return False
         if self.tablero.matriz_piezas[fila_captura][col_destino] is not None:
             return False
