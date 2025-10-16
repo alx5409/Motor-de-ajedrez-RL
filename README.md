@@ -8,20 +8,21 @@ Este proyecto consiste en el desarrollo de un motor de ajedrez utilizando técni
 chess-rl-engine
 ├── src
 │   ├── engine
-│   │   ├── tablero.py                  # Clase que representa el tablero de ajedrez
-|   |   ├── piezas                      # Carpeta que aloja las clases de las piezas
-│   │   ├── generador_movimiento.py     # Generador de movimientos legales
+│   │   ├── color.py                    # Enum de color: BLANCA y NEGRA
 │   │   ├── evaluador.py                # Evaluador de posiciones del tablero
-│   │   └── main_engine.py              # Main del motor
+│   │   ├── generador_movimiento.py     # Generador de movimientos legales
+│   │   ├── main_engine.py              # Main del motor
+│   │   ├── piezas                      # Carpeta que aloja las clases de las piezas
+│   │   ├── reglas.py                   # Clase que aloja las reglas del ajedrez
+│   │   └── tablero.py                  # Clase que representa el tablero de ajedrez
 │   ├── rl
 │   │   ├── agente.py                   # Implementación del agente de aprendizaje por
-|   |   |                                   refuerzo
 │   │   ├── entrenamiento.py            # Bucle de entrenamiento del agente
 │   │   ├── experiencias_buffer.py      # Memoria de experiencias
 │   │   └── main_agent.py               # Main del agente
 │   ├── utils           
-│   │   ├── logger.py                   # Utilidad para registro de eventos y métricas
 │   │   ├── config.py                   # Gestión de configuración
+│   │   ├── logger.py                   # Utilidad para registro de eventos y métricas
 │   │   └── main_utils.py               # Main de las utilidades
 │   ├── main.py                         # Punto de entrada de la aplicación
 │   └── tipos           
@@ -29,7 +30,6 @@ chess-rl-engine
 ├── tests           
 │   ├── test_engine.py                  # Pruebas unitarias del módulo engine
 │   ├── test_rl.py                      # Pruebas unitarias del módulo de aprendizaje por 
-|   |                                       refuerzo
 │   └── test_utils.py                   # Pruebas unitarias de utilidades
 ├── requirements.txt                    # Dependencias del proyecto
 ├── setup.py                            # Configuración de empaquetado
