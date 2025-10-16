@@ -22,7 +22,7 @@ class Generador_movimientos:
         for fila in range(self._tablero.DIM_TABLERO):
             for columna in range(self._tablero.DIM_TABLERO):
                 destino = array('i', [fila, columna])
-                if self._reglas.es_movimiento_legal(pieza, destino):
+                if self.es_movimiento_legal(pieza, destino):
                     movimientos_pieza.append(destino)
         return movimientos_pieza
     
@@ -41,8 +41,11 @@ class Generador_movimientos:
                     movimientos_legales.append((pieza, destino))
         return movimientos_legales
 
-    def es_movimiento_legal(self, pieza: Pieza) -> list:
-        pass
+    def es_movimiento_legal(self, pieza: Pieza, destino: array) -> bool:
+        """
+        Devuelte Trie si el movimiento es legal según las relgas de ajedrez.
+        """
+        return self._reglas.es_movimiento_legal(pieza, destino)
 
     def generar_capturas(self) -> list:
         pass
