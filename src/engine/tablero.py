@@ -7,7 +7,8 @@ from array import array
 import numpy as np
 import copy
 
-from piezas import Alfil, Caballo, Dama, Peon, Pieza, Color, Rey, Torre
+from color import Color
+from piezas import Alfil, Caballo, Dama, Peon, Pieza, Rey, Torre
 
 class EstadoCasilla(Enum):
     LIBRE = 0

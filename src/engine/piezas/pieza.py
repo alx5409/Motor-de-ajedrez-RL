@@ -5,9 +5,7 @@ from array import array
 from enum import Enum
 import numpy as np
 
-class Color(Enum):
-    BLANCA = 1
-    NEGRA = 2
+from color import Color
 
 class Pieza:
     posicion_actual_entera: array

@@ -1,7 +1,8 @@
 from array import array
 from copy import deepcopy
 
-from piezas import Alfil, Caballo, Color, Rey, Pieza, Peon, Torre
+from color import Color
+from piezas import Alfil, Caballo, Rey, Pieza, Peon, Torre
 from tablero import Tablero
 
 class Reglas:
