@@ -11,6 +11,20 @@ class Generador_movimientos:
         self._tablero = tablero
         self._reglas = reglas
         self._color_actual = color
+
+    def generar_movimiento_para_pieza(self, pieza: Pieza) -> list:
+        """
+        Genera todos los movimientos legales posibles para la pieza dada.
+        Returns:
+            list[array]: Lista de destinos legales (array de dos enteros [fila, columna]).
+        """
+        movimientos_pieza = []
+        for fila in range(self._tablero.DIM_TABLERO):
+            for columna in range(self._tablero.DIM_TABLERO):
+                destino = array('i', [fila, columna])
+                if self._reglas.es_movimiento_legal(pieza, destino):
+                    movimientos_pieza.append(destino)
+        return movimientos_pieza
     
     def generar_movimientos_legales(self) -> list:
         """
@@ -22,18 +36,10 @@ class Generador_movimientos:
         piezas_color: list[Pieza] = self._tablero.listar_piezas_por_color(self._color_actual)
         # Recorre todas las piezas de color del tablero
         for pieza in piezas_color:
-            for fila in range(self._tablero.DIM_TABLERO):
-                for columna in range(self._tablero.DIM_TABLERO):
-                    # Para cada pieza fija como destino todas las casillas del tablero y comprueba si en cada una el movimiento es valido
-                    destino = array('i', [fila, columna])
-                    if self._reglas.es_movimiento_legal(pieza, destino):
-                        # Si el movimiento es valido lo agrega a la lista de movimientos válidos
-                        movimientos_legales.append((pieza, destino))
-        
+            for destino in self.generar_movimiento_para_pieza(pieza):
+                    # Si el movimiento es valido lo agrega a la lista de movimientos válidos
+                    movimientos_legales.append((pieza, destino))
         return movimientos_legales
-
-    def generar_movimiento_para_pieza(self, pieza: Pieza) -> list:
-        pass
 
     def es_movimiento_legal(self, pieza: Pieza) -> list:
         pass
