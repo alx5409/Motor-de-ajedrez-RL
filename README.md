@@ -16,7 +16,7 @@ chess-rl-engine
 │   │   ├── reglas.py                   # Clase que aloja las reglas del ajedrez
 │   │   └── tablero.py                  # Clase que representa el tablero de ajedrez
 │   ├── rl
-│   │   ├── agente.py                   # Implementación del agente de aprendizaje por
+│   │   ├── agente.py                   # Implementación del agente de aprendizaje por refuerzo
 │   │   ├── entrenamiento.py            # Bucle de entrenamiento del agente
 │   │   ├── experiencias_buffer.py      # Memoria de experiencias
 │   │   └── main_agent.py               # Main del agente
