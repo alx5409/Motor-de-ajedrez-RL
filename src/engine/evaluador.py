@@ -66,7 +66,7 @@ class Evaluador:
         """
         Evalúa la estructura de peones para el color evaluado.
         """
-        peso = float(self._pesos.get("estructura_peones" 0.2))
+        peso = float(self._pesos.get("estructura_peones", 0.2))
 
         color_propio = self._color
         color_oponente = Color.BLANCA if color_propio == Color.NEGRA else Color.NEGRA
