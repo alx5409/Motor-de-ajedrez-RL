@@ -56,7 +56,7 @@ class Generador_movimientos:
         capturas = []
         for pieza, destino in self.generar_movimientos_legales():
             pieza_en_destino: Pieza = self._tablero.matriz_piezas[destino[0]][destino[1]]
-            if pieza_en_destino and pieza_en_destino._color != self._color_actual:
+            if pieza_en_destino and pieza_en_destino.color != self._color_actual:
                 capturas.append((pieza, destino))
         
         return capturas

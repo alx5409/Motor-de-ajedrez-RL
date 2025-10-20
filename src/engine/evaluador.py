@@ -127,9 +127,81 @@ class Evaluador:
 
         # Devuelve la puntuación normalizada
         return float(puntuacion * peso)
-    def evaluar_control_centro(self) -> float:
-        pass
     
+    def evaluar_control_centro(self) -> float:
+        """
+        Evalúa el control del centro (las 4 casillas centrales: d4, e4, c5 y e5 en un tablero estándar)
+        para el color evaluado.
+        Devuelve un valor positivo si el conotrol favorece al color evaluado.
+        """
+        peso = float(self._pesos.get("control_centro", 0.1))
+        dim = self._tablero.DIM_TABLERO
+
+        centros = self._centros_tablero(dim)
+        if not centros:
+            return 0.0
+        
+        color_propio = self._color
+        color_oponente = Color.BLANCA if self._color == Color.NEGRA else Color.NEGRA
+
+        control_propio = sum(1 for casilla in centros if self._casilla_controlada_por(casilla, color_propio))
+        control_oponente = sum(1 for casilla in centros if self._casilla_controlada_por(casilla, color_oponente))
+
+        # Normalizar por número de casillas centrales y escalar por peso
+        puntuacion = (control_propio - control_oponente) / float(len(centros))
+        return puntuacion * peso
+
+        
+    def _centros_tablero(self, dim: int) -> list:
+        """
+        Devuelve la lista de coordenadas que se consideran centrales en un tablero de dimension genérica.
+        - dim par: devuelve el bloque 2x2 central.
+        - dim impar: devuelve la 3x3 centrada.
+        """
+        # Comprueba que la dimension es positiva para continuar
+        if dim <= 0:
+            return []
+        
+        mid = dim // 2
+        if dim % 2 == 0:
+            # 2x2 casillas centrales
+            return [(mid - 1, mid - 1), (mid - 1, mid), (mid, mid - 1), (mid, mid)]
+        else:
+            # 3x3 casillas alrededor del centro
+            offsets = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 0), (0, 1), (1, -1), (1, 0), (1, 1)]
+            centros = []
+            for dr, dc in offsets:
+                fila, columna = mid + dr, mid + dc
+                if 0 <= fila < dim and 0 <= columna < dim:
+                    centros.append((fila, columna))
+            return centros
+    
+    def _casilla_controlada_por(self, casilla: tuple[int, int], color: Color) -> bool:
+        """
+        Devuelve True si la casila está ocupada por el color a evaluar o si alguna pieza del color 
+        a evaluar puede legalmente mover/atacar allí.
+        """
+        fila, columna = casilla
+        # Validación de los límites
+        dim = self._tablero.DIM_TABLERO
+        if not (0 <= fila < dim and 0 <= columna < dim):
+            return False
+        
+        ocupante: Pieza = self._tablero.matriz_piezas[fila][columna]
+        if ocupante is not None and ocupante.color == color:
+            return True
+        
+        # Comprobar si alguna pieza del color puede mover a la casilla
+        for pieza in self._tablero.listar_piezas_por_color(color):
+            try:
+                if self._reglas.es_movimiento_legal(pieza, array('i', [fila, columna])):
+                    return True
+            # Ignorar comprobaciones que fallen y continuar con otras piezas
+            except Exception:
+                continue
+
+        return False
+
     def _contar_movimientos(self, color: Color) -> int:
         """
         Cuenta cuántos movimientos legales del color dado hay (con límite opcional).
@@ -154,7 +226,7 @@ class Evaluador:
                 continue
             # Accede solo a los peones propios 
             pieza: Peon = self._tablero.matriz_piezas[fila][columna]
-            if pieza is not None and isinstance(pieza, Peon) and pieza._color == self._color:
+            if pieza is not None and isinstance(pieza, Peon) and pieza.color == self._color:
                 shield += 1
         
         return shield

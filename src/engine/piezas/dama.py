@@ -17,9 +17,9 @@ class Dama(Pieza):
         Comprueba si el movimiento es válido para una dama.
         La dama tiene los movimientos válidos de la torre y el alfil.
         """
-        torre = Torre(self._color)
+        torre = Torre(self.color)
         torre.posicion_actual_entera = self.posicion_actual_entera
-        alfil = Alfil(self._color)
+        alfil = Alfil(self.color)
         alfil.posicion_actual_entera = self.posicion_actual_entera
 
         return (
