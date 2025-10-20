@@ -10,7 +10,7 @@ class Dama(Pieza):
         Inicializa una dama con su color.
         """
         super().__init__(color)
-        self._valor_relativo = 9
+        self.valor_relativo = 9
 
     def comprobar_movimiento_valido(self, movimiento: array, tablero: np.ndarray) -> bool:
         """

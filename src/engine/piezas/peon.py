@@ -11,7 +11,7 @@ class Peon(Pieza):
         Inicializa un peón con su color.
         """
         super().__init__(color)
-        self._valor_relativo = 1
+        self.valor_relativo = 1
 
     def comprobar_movimiento_valido(self, movimiento: array, tablero: np.ndarray) -> bool:
         """

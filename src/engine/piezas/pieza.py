@@ -17,7 +17,7 @@ class Pieza:
             raise ValueError(f"Error, color inválido: {color}. Solo se permite BLANCA o NEGRA")
         self.color: Color = color
         self.posicion_actual_entera: array = array('i', [0, 0])
-        self._valor_relativo: int = 0
+        self.valor_relativo: int = 0
 
     @staticmethod
     def transformar_estandar_a_entero(posicion: list) -> array:
@@ -90,4 +90,4 @@ class Pieza:
         Returns:
             int: valor relativo de la pieza
         """
-        return self._valor_relativo
+        return self.valor_relativo

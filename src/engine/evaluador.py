@@ -3,7 +3,9 @@ from array import array
 from generador_movimiento import Generador_movimientos
 from tablero import Tablero
 from color import Color
-from piezas import *
+from piezas.pieza import Pieza
+from piezas.peon import Peon
+# from piezas.rey import Rey
 from utils import config
 from reglas import Reglas
 
@@ -84,11 +86,11 @@ class Evaluador:
 
         valor_propio = 0
         for pieza_propia in piezas_propias:
-            valor_propio += getattr(pieza_propia, "_valor_relativo", 0)
+            valor_propio += pieza_propia.valor_relativo
 
         valor_oponente = 0
         for pieza_oponente in piezas_oponente:
-            valor_oponente += getattr(pieza_oponente, "_valor_relativo", 0)
+            valor_oponente += pieza_oponente.valor_relativo
         
         return float(valor_propio - valor_oponente)
 
@@ -101,6 +103,9 @@ class Evaluador:
         movimientos_oponente = self._contar_movimientos(color_oponente)
 
         movilidad_maxima = float(self._pesos.get("max_movilidad", 40.0))
+        # Arregla el bug de un 0 y posible bucle infinito
+        if movilidad_maxima == 0.0:
+            movilidad_maxima = 1.0
         movilidad_neta = (movimientos_propios - movimientos_oponente) / movilidad_maxima
         return float(movilidad_neta)
     
@@ -113,7 +118,7 @@ class Evaluador:
         color_propio = self._color
         color_oponente = Color.BLANCA if color_propio == Color.NEGRA else Color.NEGRA
 
-        #Recopilar peones propios y enemigos por columna
+        # Obtener diccionarios columna -> [filas]
         peones_propios = self._peones_por_columna(color_propio)
         peones_oponente = self._peones_por_columna(color_oponente)
 
@@ -129,7 +134,8 @@ class Evaluador:
         puntuacion_unidades = (
             cantidad_peones_pasados_propios * bono_pasado
             - cantidad_peones_doblados_propios * penalizacion_doblado
-            - cantidad_peones_aislados_propios * penalizacion_aislado)
+            - cantidad_peones_aislados_propios * penalizacion_aislado
+        )
         return float(puntuacion_unidades * peso)
     
     def evaluar_seguridad_rey(self) -> float:
@@ -142,7 +148,7 @@ class Evaluador:
 
         # Buscar la posición del rey
         pos_rey = self._tablero.buscar_rey(self._color)
-        # Si encuentra la posicion devuelve 0
+        # Si no existe la posicion devuelve 0
         if pos_rey is None:
             return 0.0
         
@@ -239,7 +245,7 @@ class Evaluador:
                 if self._reglas.es_movimiento_legal(pieza, array('i', [fila, columna])):
                     return True
             # Ignorar comprobaciones que fallen y continuar con otras piezas
-            except Exception:
+            except IndexError:
                 continue
 
         return False
@@ -357,11 +363,11 @@ class Evaluador:
             for fila in filas:
                 delante_enemigos = False
                 # Comprobar columnas propia y adyacentes
-                for columna in (columna - 1, columna, columna + 1):
+                for col in (columna - 1, columna, columna + 1):
                     # Si está fuera del tablero, saltar
-                    if columna < 0 or columna >= dim:
+                    if col < 0 or col >= dim:
                         continue
-                    filas_oponente = columnas_oponente.get(columna, [])
+                    filas_oponente = columnas_oponente.get(col, [])
                     if color == Color.BLANCA:
                         # Para blancas, delante significa fila mayor
                         if any(fila_oponente > fila for fila_oponente in filas_oponente):
