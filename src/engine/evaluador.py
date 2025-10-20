@@ -50,8 +50,15 @@ class Evaluador:
         return float(valor_propias - valor_oponente)
 
     def evaluar_movilidad(self) -> float:
-        pass
+        """
+        Calcula la movilidad neta normalizada para el color evaluado.
+        """
+        movimientos_propios = self._contar_movimientos(self._color)
+        color_oponente = Color.BLANCA if self._color == Color.NEGRA else Color.NEGRA
+        movimientos_oponente = self._contar_movimientos(color_oponente)
 
+        movilidad_neta = (movimientos_propios - movimientos_oponente)
+        return float(movilidad_neta)
     def evaluar_estructura_peones(self) -> float:
         pass
 
@@ -61,12 +68,12 @@ class Evaluador:
     def evaluar_control_centro(self) -> float:
         pass
     
-    # def _contar_movimientos(self, color: Color) -> int:
-    #     """
-    #     Cuenta cuántos movimientos legales del color dado hay (con límite opcional).
-    #     """
-    #     generador = Generador_movimientos(self._tablero, self._reglas, color)
-    #     return generador.contar_movimientos_legales()
+    def _contar_movimientos(self, color: Color) -> int:
+        """
+        Cuenta cuántos movimientos legales del color dado hay (con límite opcional).
+        """
+        generador = Generador_movimientos(self._tablero, self._reglas, color)
+        return generador.contar_movimientos_legales()
     
     # def es_jaque(self, color: Color) -> bool:
     #     return self._reglas.es_jaque(color)
