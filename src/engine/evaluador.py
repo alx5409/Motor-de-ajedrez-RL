@@ -26,29 +26,71 @@ class Evaluador:
 
     def evaluar(self) -> float:
         """
-        Devuelve la evaluación global de la posición para el color dado.
+        Combina las métricas parciales y devuelve una evaluación para el color a evaluar.
+        Casos terminales:
+        - si el rey del color a evaluar está en jaque mate -> valor muy negativo
+        - si el rey del oponente está en jaque mate -> valor muy positivo
+
+        Las métricas parciales se combinan usando los pesos que se introducen en el constructor.
         """
-        pass
+        # colores
+        color_oponente = Color.BLANCA if self._color == Color.NEGRA else Color.NEGRA
+
+        # valores terminales
+        mate_valor = float(self._pesos.get("mate", 1e6))    # Se escoge un valor muy grande
+
+        # Casos terminales gestionados por Reglas
+        if self._reglas.es_jaque_mate(self._color):
+            return -mate_valor
+        if self._reglas.es_jaque_mate(color_oponente):
+            return mate_valor
+        if self._reglas.es_tablas():
+            return 0.0
+
+        # Pesos
+        peso_material = float(self._pesos.get("material", 1.0))
+        peso_movilidad = float(self._pesos.get("movilidad", 0.05))
+        peso_estructura = float(self._pesos.get("estructura_peones", 0.2))
+        peso_seguridad = float(self._pesos.get("seguridad_rey", 0.5))
+        peso_centro = float(self._pesos.get("control_centro", 0.1))
+
+        # Métricas parciales (todas desde la perspectiva de self._color)
+        material = self.evaluar_material()
+        movilidad = self.evaluar_movilidad()
+        estructura = self.evaluar_estructura_peones()
+        seguridad = self.evaluar_seguridad_rey()
+        centro = self.evaluar_control_centro()
+
+        # Combinación lineal de las puntuaciones parciales
+        puntuacion_global = (
+            material * peso_material
+            + movilidad * peso_movilidad
+            + estructura * peso_estructura
+            + seguridad * peso_seguridad
+            + centro * peso_centro
+        )
+
+        return float(puntuacion_global)
     
     def evaluar_material(self) -> float:
         """
         Calcula la diferencia de material entre el color evaluado y el oponente.
         """
-        color_propias = self._color
+        color_propio = self._color
         color_oponente = Color.BLANCA if self._color == Color.NEGRA else Color.NEGRA
 
-        piezas_propias = self._tablero.listar_piezas_por_color(color_propias)
+        piezas_propias = self._tablero.listar_piezas_por_color(color_propio)
         piezas_oponente = self._tablero.listar_piezas_por_color(color_oponente)
 
-        valor_propias = 0
+        valor_propio = 0
         for pieza_propia in piezas_propias:
-            valor_propias += getattr(pieza_propia, "_valor_relativo", 0)
+            valor_propio += getattr(pieza_propia, "_valor_relativo", 0)
 
         valor_oponente = 0
         for pieza_oponente in piezas_oponente:
             valor_oponente += getattr(pieza_oponente, "_valor_relativo", 0)
         
-        return float(valor_propias - valor_oponente)
+        return float(valor_propio - valor_oponente)
 
     def evaluar_movilidad(self) -> float:
         """
@@ -132,7 +174,7 @@ class Evaluador:
         """
         Evalúa el control del centro (las 4 casillas centrales: d4, e4, c5 y e5 en un tablero estándar)
         para el color evaluado.
-        Devuelve un valor positivo si el conotrol favorece al color evaluado.
+        Devuelve un valor positivo si el control favorece al color evaluado.
         """
         peso = float(self._pesos.get("control_centro", 0.1))
         dim = self._tablero.DIM_TABLERO
@@ -204,12 +246,12 @@ class Evaluador:
 
     def _contar_movimientos(self, color: Color) -> int:
         """
-        Cuenta cuántos movimientos legales del color dado hay (con límite opcional).
+        Cuenta cuántos movimientos legales del color dado hay.
         """
         generador = Generador_movimientos(self._tablero, self._reglas, color)
         return generador.contar_movimientos_legales()
     
-    def _contar_shields(self, posicion_rey: tuple[int, int],casillas_criticas: list) ->int:
+    def _contar_shields(self, posicion_rey: tuple[int, int], casillas_criticas: list) -> int:
         """
         Cuenta peones propios en las casillas adyacentes al rey (excluyendo la casilla del rey).
         """
@@ -269,7 +311,7 @@ class Evaluador:
         return casillas
     
     def _peones_por_columna(self, color: Color) -> dict:
-        columnas: dict[int, list[int]] = {}         # Diccionario 
+        columnas: dict[int, list[int]] = {}
         for pieza in self._tablero.listar_piezas_por_color(color):
             # Solo consideramos los peones
             if not isinstance(pieza, Peon):
@@ -296,10 +338,10 @@ class Evaluador:
         Cuenta peones aislados: peones cuya columna no tiene peones propios en columnas adyacentes.
         """
         aislados = 0
-        for columna, fila in columnas_propias.items():
+        for columna, filas in columnas_propias.items():
             # Si no hay peones en las columnas adyacentes, todos los peones de la columna se consideran aislados
             if ((columna - 1) not in columnas_propias) and ((columna + 1) not in columnas_propias):
-                aislados += len(fila)
+                aislados += len(filas)
         return aislados
 
     def _contar_peones_pasados(self, columnas_propias: dict, columnas_oponente: dict, color: Color) -> int:
@@ -311,11 +353,11 @@ class Evaluador:
         pasados = 0
         # Para cada peón propio comprobamos la presencia de peones enemigos delante de la misma columna o en
         # columnas adyacentes.
-        for columnas, filas in columnas_propias.items():
+        for columna, filas in columnas_propias.items():
             for fila in filas:
                 delante_enemigos = False
                 # Comprobar columnas propia y adyacentes
-                for columna in (columnas - 1, columnas, columnas + 1):
+                for columna in (columna - 1, columna, columna + 1):
                     # Si está fuera del tablero, saltar
                     if columna < 0 or columna >= dim:
                         continue
