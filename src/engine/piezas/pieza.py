@@ -15,9 +15,9 @@ class Pieza:
         """
         if not isinstance(color, Color):
             raise ValueError(f"Error, color inválido: {color}. Solo se permite BLANCA o NEGRA")
-        self._color: Color = color
+        self.color: Color = color
         self.posicion_actual_entera: array = array('i', [0, 0])
-        self._valor_relativo: int = 0
+        self.valor_relativo: int = 0
 
     @staticmethod
     def transformar_estandar_a_entero(posicion: list) -> array:
@@ -51,7 +51,7 @@ class Pieza:
         """
         fila_destino, columna_destino = movimiento
         casilla_destino = tablero[fila_destino, columna_destino]
-        if (self._color == Color.BLANCA and casilla_destino == 1) or (self._color == Color.NEGRA and casilla_destino == -1):
+        if (self.color == Color.BLANCA and casilla_destino == 1) or (self.color == Color.NEGRA and casilla_destino == -1):
             return False
         return True
 
@@ -90,4 +90,4 @@ class Pieza:
         Returns:
             int: valor relativo de la pieza
         """
-        return self._valor_relativo
+        return self.valor_relativo

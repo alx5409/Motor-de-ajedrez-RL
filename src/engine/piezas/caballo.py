@@ -11,7 +11,7 @@ class Caballo(Pieza):
         Inicializa un caballo con su color.
         """
         super().__init__(color)
-        self._valor_relativo = 3
+        self.valor_relativo = 3
 
     def comprobar_movimiento_valido(self, movimiento: array, tablero: np.ndarray) -> bool:
         """

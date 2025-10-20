@@ -104,7 +104,7 @@ class Reglas:
         # Si es valido, comprueba si es legal, es decir que sale del jaque
         tablero_simulado = self.simular_movimiento(pieza, destino)
         reglas_simuladas = Reglas(tablero_simulado)
-        if reglas_simuladas.es_jaque(pieza._color):
+        if reglas_simuladas.es_jaque(pieza.color):
             return False
         
         return True
@@ -160,7 +160,7 @@ class Reglas:
         # El último movimiento debe ser de un peón que avanza dos casillas
         if not isinstance(pieza_movida, Peon):
             return False
-        if pieza_movida._color == peon._color:
+        if pieza_movida.color == peon.color:
             return False
 
         # El peón rival debe estar en la columna adyacente y en la misma fila que el peón actual
@@ -180,7 +180,7 @@ class Reglas:
             return False
 
         # La casilla de captura al paso debe estar vacía y dentro del tablero
-        direccion = 1 if peon._color == Color.BLANCA else -1
+        direccion = 1 if peon.color == Color.BLANCA else -1
         fila_captura = fila_peon + direccion
         if not (0 <= fila_captura < self.tablero.DIM_TABLERO):
             return False
