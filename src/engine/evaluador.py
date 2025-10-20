@@ -1,12 +1,17 @@
+from array import array
+
+from generador_movimiento import Generador_movimientos
 from tablero import Tablero
 from color import Color
 from piezas import *
 from utils import config
+from reglas import Reglas
 
 class Evaluador:
 
-    def __init__(self, tablero: Tablero, color_a_evaluar: Color = Color.BLANCA, pesos: dict = None):
+    def __init__(self, tablero: Tablero, reglas: Reglas, color_a_evaluar: Color = Color.BLANCA, pesos: dict = None):
         self._tablero = tablero
+        self._reglas = reglas
         self._color = color_a_evaluar
         if (pesos is not None):
             self._pesos = pesos.copy()
@@ -44,7 +49,7 @@ class Evaluador:
         
         return float(valor_propias - valor_oponente)
 
-    def evaluar_mobilidad(self) -> float:
+    def evaluar_movilidad(self) -> float:
         pass
 
     def evaluar_estructura_peones(self) -> float:
@@ -55,9 +60,19 @@ class Evaluador:
 
     def evaluar_control_centro(self) -> float:
         pass
+    
+    # def _contar_movimientos(self, color: Color) -> int:
+    #     """
+    #     Cuenta cuántos movimientos legales del color dado hay (con límite opcional).
+    #     """
+    #     generador = Generador_movimientos(self._tablero, self._reglas, color)
+    #     return generador.contar_movimientos_legales()
+    
+    # def es_jaque(self, color: Color) -> bool:
+    #     return self._reglas.es_jaque(color)
 
-    def es_jaque_mate(self) -> bool:
-        pass
+    # def es_jaque_mate(self, color: Color) -> bool:
+    #     return self._reglas.es_jaque_mate(color)
 
-    def es_tablas(self) -> bool:
-        pass
+    # def es_tablas(self) -> bool:
+    #     return self._reglas.es_tablas()
