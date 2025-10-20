@@ -23,7 +23,26 @@ class Evaluador:
         """
         Devuelve la evaluación global de la posición para el color dado.
         """
+    
+    def evaluar_material(self) -> float:
+        """
+        Calcula la diferencia de material entre el color evaluado y el oponente.
+        """
+        color_propias = self._color
+        color_oponente = Color.BLANCA if self._color == Color.NEGRA else Color.NEGRA
+
+        piezas_propias = self._tablero.listar_piezas_por_color(color_propias)
+        piezas_oponente = self._tablero.listar_piezas_por_color(color_oponente)
+
+        valor_propias = 0
+        for pieza_propia in piezas_propias:
+            valor_propias += getattr(pieza_propia, "_valor_relativo", 0)
+
+        valor_oponente = 0
+        for pieza_oponente in piezas_oponente:
+            valor_oponente += getattr(pieza_oponente, "_valor_relativo", 0)
         
+        return float(valor_propias - valor_oponente)
 
     def evaluar_mobilidad(self) -> float:
         pass
