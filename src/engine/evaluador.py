@@ -91,8 +91,42 @@ class Evaluador:
         return float(puntuacion_unidades * peso)
     
     def evaluar_seguridad_rey(self) -> float:
-        pass
+        """
+        Evalua la seguridad del rey para el color evaluado. Devuelve un valor positivo si la seguridad es
+        favorable para el color y negativo si está en peligro.
+        """
+        peso = float(self._pesos.get("seguridad_rey", 0.5))
+        dim = self._tablero.DIM_TABLERO
 
+        # Buscar la posición del rey
+        pos_rey = self._tablero.buscar_rey(self._color)
+        # Si encuentra la posicion devuelve 0
+        if pos_rey is None:
+            return 0.0
+        
+        # Normaliza las coordenadas del rey
+        fila_rey, columna_rey = int(pos_rey[0]), int(pos_rey[1])
+
+        # Penalización por exposición en el centro del tablero
+        penalizacion_central = 0.5 if (2 <= fila_rey <= dim - 3 and 2 <= columna_rey <= dim - 3) else 0.0
+
+        # Casillas críticas: casillas del rey + adyacentes
+        casillas_criticas = self._casillas_criticas_rey(pos_rey, dim)
+
+        # Shields: peones propios adyacentes que protegen al rey
+        shields_contador = self._contar_shields(pos_rey, casillas_criticas)
+        shield_bonus = shields_contador * 0.25  # Cada peón escudo aporta este bono
+
+        # Atacantes enemigos a las casillas críticas
+        color_oponente = Color.BLANCA if self._color == Color.NEGRA else Color.NEGRA
+        contador_atacante = self._contar_atacantes_casillas(casillas_criticas, color_oponente)
+        penalizacion_atacante = contador_atacante * 0.6
+
+        # Combinar factores
+        puntuacion = shield_bonus - penalizacion_atacante - penalizacion_central
+
+        # Devuelve la puntuación normalizada
+        return float(puntuacion * peso)
     def evaluar_control_centro(self) -> float:
         pass
     
@@ -103,8 +137,67 @@ class Evaluador:
         generador = Generador_movimientos(self._tablero, self._reglas, color)
         return generador.contar_movimientos_legales()
     
+    def _contar_shields(self, posicion_rey: tuple[int, int],casillas_criticas: list) ->int:
+        """
+        Cuenta peones propios en las casillas adyacentes al rey (excluyendo la casilla del rey).
+        """
+        shield = 0          # Contador de peones escudo
+        # Comprueba si la posicion del rey existe
+        if posicion_rey is None:
+            return shield
+        rey_pos = (int(posicion_rey[0]), int(posicion_rey[1]))
+        
+        for casilla in casillas_criticas:
+            fila, columna = int(casilla[0]), int(casilla[1])
+            # Excluye la casilla del rey
+            if (fila, columna) == rey_pos:
+                continue
+            # Accede solo a los peones propios 
+            pieza: Peon = self._tablero.matriz_piezas[fila][columna]
+            if pieza is not None and isinstance(pieza, Peon) and pieza._color == self._color:
+                shield += 1
+        
+        return shield
+    
+    def _contar_atacantes_casillas(self, casillas_criticas: list, color_oponente: Color) -> int:
+        """
+        Cuenta atacantes únicos del conjunto de casillas críticas por parte del color oponente.
+        """
+        atacantes = set()
+        piezas_enemigas = self._tablero.listar_piezas_por_color(color_oponente)
+        for pieza in piezas_enemigas:
+            for destino in casillas_criticas:
+                try:
+                    if self._reglas.es_movimiento_legal(pieza, destino):
+                        atacantes.add(id(pieza))  # identificar pieza por id
+                        break
+                # Si reglas falla para una comprobación concreta, ignorarla y continuar
+                except Exception:
+                    continue
+        return len(atacantes)
+
+    def _casillas_criticas_rey(self, posicion_rey: tuple[int, int], dim: int) ->list:
+        """
+        Devuelve la lista de casillas críticas (casillas de rey + adyacentes) como arrays.
+        """
+        vecinos = [(0, 0), (-1, -1), (-1, 0), (-1, 1), (0, -1),
+                    (0, 1), (1, -1), (1, 0), (1, 1)]
+        casillas: list = []
+
+        # Comprueba sila posicion del rey existe
+        if posicion_rey is None:
+            return casillas
+        
+        fila_rey, columna_rey = int(posicion_rey[0]), int (posicion_rey[1])
+        for coordenada_fila, coordenada_columna in vecinos:
+            fila, columna = fila_rey + coordenada_fila, columna_rey + coordenada_columna
+            if (0 <= fila < dim and 0 <= columna < dim):
+                casillas.append(array('i', [fila, columna]))
+        
+        return casillas
+    
     def _peones_por_columna(self, color: Color) -> dict:
-        columnas: dict[int, array] = {}         # Diccionario 
+        columnas: dict[int, list[int]] = {}         # Diccionario 
         for pieza in self._tablero.listar_piezas_por_color(color):
             # Solo consideramos los peones
             if not isinstance(pieza, Peon):
