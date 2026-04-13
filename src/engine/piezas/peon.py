@@ -24,7 +24,6 @@ class Peon(Pieza):
         fila_destino, columna_destino = movimiento
 
         direccion = 1 if self.color == Color.BLANCA else -1
-        fila_inicial = 1 if self.color == Color.BLANCA else 6
 
         casilla_destino = tablero[fila_destino, columna_destino]
         destino_esta_ocupado = casilla_destino != 0
@@ -40,11 +39,11 @@ class Peon(Pieza):
 
         # Avanza dos casillas desde la posición inicial
         es_avance_doble = (
+            not self.se_ha_movido and
             columna_destino == columna_actual and
-            fila_actual == fila_inicial and
             fila_destino == fila_actual + 2 * direccion and
-            tablero[fila_actual + direccion, columna_destino] == 0 and
-            casilla_destino == 0
+            not destino_esta_ocupado and
+            tablero[fila_actual + direccion, columna_actual] == 0
         )
         if es_avance_doble:
             return True
@@ -74,7 +73,7 @@ class Peon(Pieza):
         return ((self.color == Color.BLANCA and fila_actual == 7) or
                 (self.color == Color.NEGRA and fila_actual == 0))
 
-    def transformarse(self):
+    def transformarse(self) -> Pieza | None:
         """
         Permite al usuario elegir la pieza a la que se transforma el peón.
         Returns:
