@@ -8,11 +8,14 @@ from color import Color
 
 class Pieza:
     posicion_actual_entera: array
+    se_ha_movido: bool
+    valor_relativo: int
 
     def __init__(self, color: Color):
         """
         Inicializa una pieza con su color y posición inicial.
         """
+        self.se_ha_movido = False
         if not isinstance(color, Color):
             raise ValueError(f"Error, color inválido: {color}. Solo se permite BLANCA o NEGRA")
         self.color: Color = color
@@ -83,6 +86,7 @@ class Pieza:
             tablero[movimiento_transformado[0], movimiento_transformado[1]] = self
             self.posicion_actual_entera[0] = movimiento_transformado[0]
             self.posicion_actual_entera[1] = movimiento_transformado[1]
+            self.se_ha_movido = True
 
     def capturar(self) -> int:
         """

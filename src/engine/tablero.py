@@ -124,8 +124,6 @@ class Tablero:
         )
         return True
 
-        return False
-    
     def obtener_estado_matriz(self) -> np.ndarray:
         """
         Devuelve una matriz que representa el estado del tablero.
