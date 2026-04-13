@@ -1,13 +1,24 @@
 from array import array
 import random
-from typing import Any
+from typing import Any, TypedDict
 
 from tablero import Tablero
 from reglas import Reglas
 from generador_movimiento import Generador_movimientos
 from color import Color
 
-def main_engine(max_turnos: int = 200, mostrar: bool = True, semilla: int | None = None) -> dict[str, Any]:
+type Movimiento = tuple[object, array]
+
+class EngineResultado(TypedDict):
+    estado: str
+    ganador: Color | None
+    turnos: int
+    semilla: int | None
+    max_turnos: int
+    ultimo_movimiento: str | None
+    detalle: str | None
+
+def main_engine(max_turnos: int = 200, mostrar: bool = True, semilla: int | None = None) -> EngineResultado:
     """
     Función principal del motor de ajedrez.
     Args:
@@ -31,12 +42,12 @@ def main_engine(max_turnos: int = 200, mostrar: bool = True, semilla: int | None
             ganador = color_actual.opuesto()
             if mostrar:
                 print(f"Jaque mate. Gana: {ganador.name}")
-            return {"estado": "jaque_mate", "ganador": ganador, "turnos": turnos_jugados}
+            return EngineResultado(estado="jaque_mate", ganador=ganador, turnos=turnos_jugados, semilla=semilla, max_turnos=max_turnos, ultimo_movimiento=None, detalle=None)
 
         if reglas.es_ahogado(color_actual) or reglas.es_tablas():
             if mostrar:
                 print("Tablas.")
-            return {"estado": "tablas", "ganador": None, "turnos": turnos_jugados}
+            return EngineResultado(estado="tablas", ganador=None, turnos=turnos_jugados, semilla=semilla, max_turnos=max_turnos, ultimo_movimiento=None, detalle=None)
 
         generador = Generador_movimientos(tablero, reglas, color_actual)
         movimientos = generador.generar_movimientos_legales()
