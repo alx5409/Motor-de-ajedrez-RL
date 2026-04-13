@@ -12,7 +12,7 @@ class Generador_movimientos:
         self._reglas = reglas
         self._color_actual = color
 
-    def generar_movimiento_para_pieza(self, pieza: Pieza) -> list:
+    def generar_movimiento_para_pieza(self, pieza: Pieza) -> list[array]:
         """
         Genera todos los movimientos legales posibles para la pieza dada.
         Returns:
@@ -26,13 +26,13 @@ class Generador_movimientos:
                     movimientos_pieza.append(destino)
         return movimientos_pieza
     
-    def generar_movimientos_legales(self) -> list:
+    def generar_movimientos_legales(self) -> list[tuple[Pieza, array]]:
         """
         Genera todos los posibles movimientos legales posibles para el color actual en el tablero.
         Returns:
             list[tuple[Pieza, array]]: Lista de tuplas donde cada tupla es una pieza y su destino.
         """
-        movimientos_legales: list = []
+        movimientos_legales: list[tuple[Pieza, array]] = []
         piezas_color: list[Pieza] = self._tablero.listar_piezas_por_color(self._color_actual)
         # Recorre todas las piezas de color del tablero
         for pieza in piezas_color:
@@ -47,13 +47,13 @@ class Generador_movimientos:
         """
         return self._reglas.es_movimiento_legal(pieza, destino)
 
-    def generar_capturas(self) -> list:
+    def generar_capturas(self) -> list[tuple[Pieza, array]]:
         """
         Genera todos los movimientos legales que son posibles capturas para el color actual.
         Returns:
             list[tuple[Pieza, array]]: Lista de tuplas (pieza, destino) que son capturas.
         """
-        capturas = []
+        capturas: list[tuple[Pieza, array]] = []
         for pieza, destino in self.generar_movimientos_legales():
             pieza_en_destino: Pieza = self._tablero.matriz_piezas[destino[0]][destino[1]]
             if pieza_en_destino and pieza_en_destino.color != self._color_actual:
