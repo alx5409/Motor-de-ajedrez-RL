@@ -94,7 +94,24 @@ class Reglas:
             if len(piezas) == 3 and any(isinstance(pieza, (Alfil, Caballo)) for pieza in piezas):
                 return True
         return False
-    # TODO Añadir comprobacion de la regla de los 50 movimientos y repetición de posición
+        
+    def es_regla_de_los_50_movimientos(self) -> bool:
+        """
+        Devuelve True si se han realizado 50 movimientos sin que se haya movido un peón ni se haya capturado una pieza.
+        """
+        if not hasattr(self.tablero, "historial") or len(self.tablero.historial) < 100:
+            return False
+        
+        # Revisa los últimos 100 movimientos (50 para cada jugador)
+        for i in range(-1, -101, -1):
+            pieza_movida, _, destino = self.tablero.historial[i]
+            # Si se ha movido un peón o se ha capturado una pieza, no se cumple la regla
+            if isinstance(pieza_movida, Peon):
+                return False
+            if self.tablero.matriz_piezas[destino[0]][destino[1]] is not None:
+                return False
+        
+        return True
 
     def es_movimiento_legal(self, pieza: Pieza, destino: array) -> bool:
         """
