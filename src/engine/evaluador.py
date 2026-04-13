@@ -394,13 +394,14 @@ class Evaluador:
                 if not delante_enemigos:
                     pasados += 1
         return pasados
-
     
-    # def es_jaque(self, color: Color) -> bool:
-    #     return self._reglas.es_jaque(color)
 
-    # def es_jaque_mate(self, color: Color) -> bool:
-    #     return self._reglas.es_jaque_mate(color)
+    # Delegar a reglas la detección de los jaques y las tablas
+    def es_jaque(self, color: Color) -> bool:
+        return self._reglas.es_jaque(color)
 
-    # def es_tablas(self) -> bool:
-    #     return self._reglas.es_tablas()
+    def es_jaque_mate(self, color: Color) -> bool:
+        return self._reglas.es_jaque_mate(color)
+
+    def es_tablas(self) -> bool:
+        return self._reglas.es_tablas()
