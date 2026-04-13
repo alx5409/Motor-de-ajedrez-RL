@@ -39,7 +39,7 @@ class Peon(Pieza):
 
         # Avanza dos casillas desde la posición inicial
         es_avance_doble = (
-            self.se_ha_movido == False and
+            not self.se_ha_movido and
             columna_destino == columna_actual and
             fila_destino == fila_actual + 2 * direccion and
             not destino_esta_ocupado and
