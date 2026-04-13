@@ -1,19 +1,19 @@
 from array import array
 import random
-from typing import Optional
+from typing import Any
 
 from tablero import Tablero
 from reglas import Reglas
 from generador_movimiento import Generador_movimientos
 from color import Color
 
-def main_engine(max_turnos: int = 200, mostrar: bool = True, semilla: Optional[int] = None) -> dict[str, any]:
+def main_engine(max_turnos: int = 200, mostrar: bool = True, semilla: int | None = None) -> dict[str, Any]:
     """
     Función principal del motor de ajedrez.
     Args:
         max_turnos (int): Número máximo de turnos antes de declarar un empate.
         mostrar (bool): Si es True, muestra el tablero después de cada movimiento.
-        semilla (Optional[int]): Semilla para la generación de movimientos aleatorios.
+        semilla (int | None): Semilla para la generación de movimientos aleatorios.
     """
 
     tablero = Tablero()
