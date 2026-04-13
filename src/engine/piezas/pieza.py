@@ -22,8 +22,7 @@ class Pieza:
         self.posicion_actual_entera: array = array('i', [0, 0])
         self.valor_relativo: int = 0
 
-    @staticmethod
-    def transformar_estandar_a_entero(posicion: list) -> array:
+    def transformar_estandar_a_entero(self, posicion: list) -> array:
         """
         Transforma la posición estándar a posición entera.
 
