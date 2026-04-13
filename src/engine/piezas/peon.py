@@ -2,7 +2,11 @@ from array import array
 import numpy as np
 
 from color import Color
-from piezas import Alfil, Caballo, Dama, Pieza, Torre
+from .pieza import Pieza
+from .dama import Dama
+from .torre import Torre
+from .alfil import Alfil
+from .caballo import Caballo
 
 class Peon(Pieza):
 
