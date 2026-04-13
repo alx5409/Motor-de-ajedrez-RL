@@ -73,7 +73,7 @@ class Peon(Pieza):
         return ((self.color == Color.BLANCA and fila_actual == 7) or
                 (self.color == Color.NEGRA and fila_actual == 0))
 
-    def transformarse(self):
+    def transformarse(self) -> Pieza | None:
         """
         Permite al usuario elegir la pieza a la que se transforma el peón.
         Returns:
