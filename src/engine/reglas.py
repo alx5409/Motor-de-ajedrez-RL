@@ -18,11 +18,12 @@ class Reglas:
             return False  # No hay rey del color especificado en el tablero
 
         posicion_rey = rey.posicion_actual_entera
+        estado_tablero = self.tablero.obtener_estado_matriz()
         piezas_oponentes = self.tablero.listar_piezas_por_color(Color.NEGRA if color == Color.BLANCA else Color.BLANCA)
         #Comprueba que las piezas tienen un movimiento valido en la posición del rey
         for pieza in piezas_oponentes:
-            if pieza.comprobar_movimiento_valido(posicion_rey, self.tablero.matriz_piezas):
-                return True
+            if pieza.comprobar_movimiento_valido(posicion_rey, estado_tablero):
+                 return True
         return False
     
     def es_jaque_mate(self, color: Color) -> bool:
@@ -34,6 +35,7 @@ class Reglas:
             return False
         
         # Comprueba si todas las piezas del color tienen las casillas de los movimientos validos del rey en objetivo
+        estado_tablero = self.tablero.obtener_estado_matriz()
         piezas_propias = self.tablero.listar_piezas_por_color(color)
         for pieza in piezas_propias:
             # Prueba todos los movimientos posibles para todas las piezas del color dado
@@ -41,7 +43,7 @@ class Reglas:
                 for columna in range(self.tablero.DIM_TABLERO):
                     destino = array('i', [fila, columna])
                     # Si el movimiento es legal y tras simularlo el rey no está en jaque, no es jaque mate
-                    es_valido = pieza.comprobar_movimiento_valido(destino, self.tablero.matriz_piezas)
+                    es_valido = pieza.comprobar_movimiento_valido(destino, estado_tablero)
                     if not es_valido:
                         continue
                     tablero_simulado = self.simular_movimiento(pieza, destino)
@@ -58,12 +60,13 @@ class Reglas:
         if self.es_jaque(color):
             return False
         # Comprueba exhaustivamente todos los movimientos validos de todas las piezas del color dado
+        estado_tablero = self.tablero.obtener_estado_matriz()
         piezas_propias = self.tablero.listar_piezas_por_color(color)
         for pieza in piezas_propias:
             for fila in range(self.tablero.DIM_TABLERO):
                 for columna in range(self.tablero.DIM_TABLERO):
                     destino = array('i', [fila, columna])
-                    es_valido = pieza.comprobar_movimiento_valido(destino, self.tablero.matriz_piezas)
+                    es_valido = pieza.comprobar_movimiento_valido(destino, estado_tablero)
                     if not es_valido:
                         continue
                     tablero_simulado = self.simular_movimiento(pieza, destino)
@@ -77,7 +80,7 @@ class Reglas:
         """
         Devuelve True si la partida es tablas (ahogado o material insuficiente).
         """
-        # Tablas si los dos jugadores están ahogados
+        # Tablas si cualquiera de los jugadores está ahogado
         if self.es_ahogado(Color.BLANCA) or self.es_ahogado(Color.NEGRA):
             return True
 
@@ -91,16 +94,17 @@ class Reglas:
             if len(piezas) == 3 and any(isinstance(pieza, (Alfil, Caballo)) for pieza in piezas):
                 return True
         return False
-        # TODO Añadir comprobacion de la regla de los 50 movimientos y repetición de posición
+    # TODO Añadir comprobacion de la regla de los 50 movimientos y repetición de posición
 
     def es_movimiento_legal(self, pieza: Pieza, destino: array) -> bool:
         """
         Devuelve True si el movimiento es legal según las reglas.
         """
         # Comprueba si el movimiento de la pieza en particular es valido
-        if not pieza.comprobar_movimiento_valido(destino, self.tablero.matriz_piezas):
-            return False
-        
+        estado_tablero = self.tablero.obtener_estado_matriz()
+        if not pieza.comprobar_movimiento_valido(destino, estado_tablero):
+             return False
+         
         # Si es valido, comprueba si es legal, es decir que sale del jaque
         tablero_simulado = self.simular_movimiento(pieza, destino)
         reglas_simuladas = Reglas(tablero_simulado)
@@ -138,7 +142,7 @@ class Reglas:
                 return False
 
         # Comprobar que el rey no está en jaque, ni pasa por ni termina en jaque
-        for col in ([4] + cols_entre if lado == "largo" else [4, 5, 6]):
+        for col in ([4, 3, 2] if lado == "largo" else [4, 5, 6]):
             tablero_simulado = self.simular_movimiento(rey, array('i', [fila, col]))
             reglas_simuladas = Reglas(tablero_simulado)
             if reglas_simuladas.es_jaque(color):
@@ -204,5 +208,11 @@ class Reglas:
         pieza_copiada = deepcopy(pieza)
         pieza_copiada.posicion_actual_entera = array('i', [destino[0], destino[1]])
         tablero_copia.matriz_piezas[destino[0]][destino[1]] = pieza_copiada
-
+        if hasattr(pieza_copiada, "se_ha_movido"):
+            pieza_copiada.se_ha_movido = True
+        if hasattr(tablero_copia, "historial"):
+            tablero_copia.historial.append(
+                (pieza_copiada, array('i', [origen[0], origen[1]]), array('i', [destino[0], destino[1]]))
+            )
+ 
         return tablero_copia
