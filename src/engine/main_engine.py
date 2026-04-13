@@ -39,6 +39,24 @@ def _seleccionar_movimiento_aleatorio(movimientos: list[Movimiento], rng: random
     idx = rng.randrange(len(movimientos))
     return movimientos[idx]
 
+def _resolver_estado_terminal(reglas: Reglas, color_actual: Color, turnos_jugados: int, semilla: int | None, max_turnos: int, mostrar: bool) -> EngineResultado | None:
+    """
+    Evalúa si la partida ha terminado antes de generar el siguiente movimiento.
+    Devuelve un EngineResultado si se detecta un estado terminal, o None si la partida continúa.
+    """
+    if reglas.es_jaque_mate(color_actual):
+        ganador = color_actual.opuesto()
+        if mostrar:
+            print(f"Jaque mate. Gana: {ganador.name}")
+        return EngineResultado(estado="jaque_mate", ganador=ganador, turnos=turnos_jugados, semilla=semilla, max_turnos=max_turnos, ultimo_movimiento=None, detalle=None)
+
+    if reglas.es_ahogado(color_actual) or reglas.es_tablas():
+        if mostrar:
+            print("Tablas.")
+        return EngineResultado(estado="tablas", ganador=None, turnos=turnos_jugados, semilla=semilla, max_turnos=max_turnos, ultimo_movimiento=None, detalle=None)
+
+    return None
+
 def main_engine(max_turnos: int = 200, mostrar: bool = True, semilla: int | None = None) -> EngineResultado:
     """
     Función principal del motor de ajedrez.
@@ -60,12 +78,10 @@ def main_engine(max_turnos: int = 200, mostrar: bool = True, semilla: int | None
             tablero.mostrar_tablero()
 
         # Estados terminales antes de mover
-        if reglas.es_jaque_mate(color_actual):
-            ganador = color_actual.opuesto()
-            resultado.actualizar(estado="jaque_mate", ganador=ganador, turnos=turnos_jugados, ultimo_movimiento=None)
-            if mostrar:
-                print(f"Jaque mate. Gana: {ganador.name}")
-            return resultado
+        estado_terminal = _resolver_estado_terminal(reglas, color_actual, turnos_jugados, semilla, max_turnos, mostrar)
+        if estado_terminal is not None:
+            resultado.actualizar(**estado_terminal)
+            return resultado    
 
         if reglas.es_ahogado(color_actual) or reglas.es_tablas():
             resultado.actualizar(estado="tablas", ganador=None, turnos=turnos_jugados, ultimo_movimiento=None)
