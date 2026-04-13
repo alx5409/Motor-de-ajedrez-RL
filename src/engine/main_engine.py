@@ -1,140 +1,79 @@
-import logging
+from array import array
+import random
+from typing import Optional
 
 from tablero import Tablero
 from reglas import Reglas
 from generador_movimiento import Generador_movimientos
-from ..utils import config
-import piezas
+from color import Color
 
-def _leer_configuracion_archivo(config_path:str = "config.txt") -> dict:
+def main_engine(max_turnos: int = 200, mostrar: bool = True, semilla: Optional[int] = None) -> dict[str, any]:
     """
-    Lee el archivo de configuración y devuelve un diccionario con los valores y las claves encontrados. 
+    Función principal del motor de ajedrez.
+    Args:
+        max_turnos (int): Número máximo de turnos antes de declarar un empate.
+        mostrar (bool): Si es True, muestra el tablero después de cada movimiento.
+        semilla (Optional[int]): Semilla para la generación de movimientos aleatorios.
     """
-    configuracion = {}
-    with open(config_path, "r") as config_file:
-        for linea in config_file:
-            linea = linea.strip()
-            if not linea or linea.startswith("#"):
-                continue
-            if "=" in linea:
-                clave, valor = linea.split("=", 1)
-                clave = clave.strip()
-                valor = valor.strip()
-                # Intenta convertir a int o float
-                if clave == "DIM_TABLERO":
-                    valor = int(valor)
-                elif clave == "SEED":
-                    valor = int(valor)
-                elif clave in ("material", "movilidad", "estructura_peones", "seguridad_rey",
-                            "control_centro", "mate", "max_movilidad"):
-                    valor = float(valor)
-                configuracion[clave] = valor
 
-    return configuracion
-    
-
-def configurar(config_path: str = "config.txt") -> dict:
-    """
-    Carga y aplica la configuración global del motor de ajedrez desde un archivo de texto.
-    Permite especificar:
-    - pesos de la evaluación
-    - dimensión del tablero
-    - modo de juego
-    - semilla aleatoria
-
-    Si falta alguna clave, usa valores por defecto
-    """
-    # Valores por defecto
-    configuracion = {
-        "DIM_TABLERO": 8,
-        "MODO_JUEGO": "greedy",
-        "SEED": None,
-        "material": 1.0,
-        "movilidad": 0.05,
-        "estructura_peones": 0.2,
-        "seguridad_rey": 0.5,
-        "control_centro": 0.1,
-        "mate": 1000000,
-        "max_movilidad": 40.0,
-    }
-    # Modifica la configuración si lee correctamente del archivo
-    try:
-        configuracion.update(_leer_configuracion_archivo(config_path))
-    except FileNotFoundError:
-        logging.error(f"Archivo de configuración {config_path} no encontrado. Usando la configuración por defecto.")
-
-    return configuracion
-
-def seleccionar_movimiento(tablero, generador, evaluador, modo="greedy"):
-    """
-    Selecciona el siguiente movimiento a aplicar según el modo: greedy, aleatorio, agente o manual.
-    """
-    movimientos = generador.generar_movimientos_legales()
-    if not movimientos:
-        return None
-
-    if modo == "aleatorio":
-        import random
-        return random.choice(movimientos)
-    elif modo == "greedy":
-        mejor_mov = None
-        mejor_valor = float('-inf')
-        for mov in movimientos:
-            # Simula el movimiento en una copia del tablero
-            tablero_copia = tablero.copiar()
-            pieza, destino = mov
-            tablero_copia.mover(pieza, destino)
-            valor = evaluador.evaluar()
-            if valor > mejor_valor:
-                mejor_valor = valor
-                mejor_mov = mov
-        return mejor_mov
-    else:
-        # Por defecto, devuelve el primer movimiento legal
-        return movimientos[0]
-
-def main_engine():
-    """
-    Orquesta la ejecución del motor de ajedrez.
-    """
-    config_dict = configurar()
-    dim = config_dict["DIM_TABLERO"]
-    modo = config_dict["MODO_JUEGO"]
-
-    # Inicialización de componentes principales
-    tablero = Tablero(dim)
+    tablero = Tablero()
     reglas = Reglas(tablero)
-    generador = Generador_movimientos(tablero, reglas)
-    from evaluador import Evaluador
-    evaluador = Evaluador(tablero, reglas, color=tablero.color_actual, pesos=config_dict)
+    color_actual = Color.BLANCA
+    rng = random.Random(semilla)
+    turnos_jugados = 0
+    while turnos_jugados < max_turnos:
+        if mostrar:
+            print(f"\\nTurno {turnos_jugados + 1} - Juegan: {color_actual.name}")
+            tablero.mostrar_tablero()
 
-    historial = []
-    ply = 0
-    max_plies = 200
+        # Estados terminales antes de mover
+        if reglas.es_jaque_mate(color_actual):
+            ganador = color_actual.opuesto()
+            if mostrar:
+                print(f"Jaque mate. Gana: {ganador.name}")
+            return {"estado": "jaque_mate", "ganador": ganador, "turnos": turnos_jugados}
 
-    while ply < max_plies:
-        if reglas.es_jaque_mate(tablero.color_actual):
-            print("Jaque mate. Fin de la partida.")
-            break
-        if reglas.es_tablas():
-            print("Tablas. Fin de la partida.")
-            break
+        if reglas.es_ahogado(color_actual) or reglas.es_tablas():
+            if mostrar:
+                print("Tablas.")
+            return {"estado": "tablas", "ganador": None, "turnos": turnos_jugados}
 
-        mov = seleccionar_movimiento(tablero, generador, evaluador, modo=modo)
-        if mov is None:
-            print("No hay movimientos legales. Fin de la partida.")
-            break
+        generador = Generador_movimientos(tablero, reglas, color_actual)
+        movimientos = generador.generar_movimientos_legales()
 
-        pieza, destino = mov
-        tablero.mover(pieza, destino)
-        historial.append((pieza, destino))
-        ply += 1
+        if not movimientos:
+            # Salvaguarda por consistencia
+            if reglas.es_jaque(color_actual):
+                ganador = color_actual.opuesto()
+                if mostrar:
+                    print(f"Sin movimientos legales y en jaque. Gana: {ganador.name}")
+                return {"estado": "jaque_mate", "ganador": ganador, "turnos": turnos_jugados}
+            if mostrar:
+                print("Sin movimientos legales. Tablas.")
+            return {"estado": "tablas", "ganador": None, "turnos": turnos_jugados}
 
-        # Mostrar tablero tras cada jugada (opcional)
-        print(tablero)
+        # Elegir un movimiento legal al azar y aplicarlo
+        movimiento_aplicado = False
+        while movimientos and not movimiento_aplicado:
+            idx = rng.randrange(len(movimientos))
+            pieza, destino = movimientos.pop(idx)
 
-    print("Partida finalizada.")
-    # Aquí podrías guardar el historial o exportar la partida si lo deseas
+            origen = array("i", [int(pieza.posicion_actual_entera[0]), int(pieza.posicion_actual_entera[1])])
+            movimiento_aplicado = tablero.mover_pieza(origen, destino)
+
+        if not movimiento_aplicado:
+            # Estado inesperado: el generador dio movimientos que no pudieron aplicarse
+            if mostrar:
+                print("Error de consistencia: no se pudo aplicar ningún movimiento legal.")
+            return {"estado": "error_consistencia", "ganador": None, "turnos": turnos_jugados}
+
+        color_actual = color_actual.opuesto()
+        turnos_jugados += 1
+
+    if mostrar:
+        print("Límite de turnos alcanzado. Tablas por límite.")
+    return {"estado": "tablas_limite_turnos", "ganador": None, "turnos": turnos_jugados}
 
 if __name__ == "__main__":
-    main_engine()
+    resultado = main_engine(max_turnos=100, mostrar=True, semilla=42)
+    print(f"Resultado final: {resultado}")

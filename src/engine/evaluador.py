@@ -11,7 +11,8 @@ from reglas import Reglas
 
 class Evaluador:
 
-    def __init__(self, tablero: Tablero, reglas: Reglas, color_a_evaluar: Color = Color.BLANCA, pesos: dict = None):
+    def __init__(self, tablero: Tablero, reglas: Reglas, color_a_evaluar: Color = Color.BLANCA,
+                 pesos: dict[str, float] | None = None):
         self._tablero = tablero
         self._reglas = reglas
         self._color = color_a_evaluar
@@ -26,6 +27,25 @@ class Evaluador:
     def __repr__(self) -> str:
         return f"Evaluador (color={self._color.name}, pesos_llaves:  {list(self._pesos.keys())})"
 
+    def _color_oponente(self) -> Color:
+        """
+        Devuelve el color opuesto al color evaluado.
+        """
+        return Color.BLANCA if self._color == Color.NEGRA else Color.NEGRA
+    
+    def _get_pesos(self) -> tuple[float, float, float, float, float]:
+        """
+        Devuelve los pesos en el orden esperado por las funciones de evaluación.
+        """
+        # Pesos
+        peso_material = float(self._pesos.get("material", 1.0))
+        peso_movilidad = float(self._pesos.get("movilidad", 0.05))
+        peso_estructura = float(self._pesos.get("estructura_peones", 0.2))
+        peso_seguridad = float(self._pesos.get("seguridad_rey", 0.5))
+        peso_centro = float(self._pesos.get("control_centro", 0.1))
+
+        return (peso_material, peso_movilidad, peso_estructura, peso_seguridad, peso_centro)
+
     def evaluar(self) -> float:
         """
         Combina las métricas parciales y devuelve una evaluación para el color a evaluar.
@@ -36,7 +56,7 @@ class Evaluador:
         Las métricas parciales se combinan usando los pesos que se introducen en el constructor.
         """
         # colores
-        color_oponente = Color.BLANCA if self._color == Color.NEGRA else Color.NEGRA
+        color_oponente = self._color_oponente()
 
         # valores terminales
         mate_valor = float(self._pesos.get("mate", 1e6))    # Se escoge un valor muy grande
@@ -48,13 +68,9 @@ class Evaluador:
             return mate_valor
         if self._reglas.es_tablas():
             return 0.0
-
-        # Pesos
-        peso_material = float(self._pesos.get("material", 1.0))
-        peso_movilidad = float(self._pesos.get("movilidad", 0.05))
-        peso_estructura = float(self._pesos.get("estructura_peones", 0.2))
-        peso_seguridad = float(self._pesos.get("seguridad_rey", 0.5))
-        peso_centro = float(self._pesos.get("control_centro", 0.1))
+        
+        # Obtener pesos para cada métrica
+        peso_material, peso_movilidad, peso_estructura, peso_seguridad, peso_centro = self._get_pesos()
 
         # Métricas parciales (todas desde la perspectiva de self._color)
         material = self.evaluar_material()
@@ -79,7 +95,7 @@ class Evaluador:
         Calcula la diferencia de material entre el color evaluado y el oponente.
         """
         color_propio = self._color
-        color_oponente = Color.BLANCA if self._color == Color.NEGRA else Color.NEGRA
+        color_oponente = self._color_oponente()
 
         piezas_propias = self._tablero.listar_piezas_por_color(color_propio)
         piezas_oponente = self._tablero.listar_piezas_por_color(color_oponente)
@@ -113,10 +129,8 @@ class Evaluador:
         """
         Evalúa la estructura de peones para el color evaluado.
         """
-        peso = float(self._pesos.get("estructura_peones", 0.2))
-
         color_propio = self._color
-        color_oponente = Color.BLANCA if color_propio == Color.NEGRA else Color.NEGRA
+        color_oponente = self._color_oponente()
 
         # Obtener diccionarios columna -> [filas]
         peones_propios = self._peones_por_columna(color_propio)
@@ -136,18 +150,18 @@ class Evaluador:
             - cantidad_peones_doblados_propios * penalizacion_doblado
             - cantidad_peones_aislados_propios * penalizacion_aislado
         )
-        return float(puntuacion_unidades * peso)
+        return float(puntuacion_unidades)
     
     def evaluar_seguridad_rey(self) -> float:
         """
         Evalua la seguridad del rey para el color evaluado. Devuelve un valor positivo si la seguridad es
         favorable para el color y negativo si está en peligro.
         """
-        peso = float(self._pesos.get("seguridad_rey", 0.5))
         dim = self._tablero.DIM_TABLERO
 
         # Buscar la posición del rey
-        pos_rey = self._tablero.buscar_rey(self._color)
+        rey = self._tablero.buscar_rey(self._color)
+        pos_rey = rey.posicion_actual_entera if rey else None
         # Si no existe la posicion devuelve 0
         if pos_rey is None:
             return 0.0
@@ -166,7 +180,7 @@ class Evaluador:
         shield_bonus = shields_contador * 0.25  # Cada peón escudo aporta este bono
 
         # Atacantes enemigos a las casillas críticas
-        color_oponente = Color.BLANCA if self._color == Color.NEGRA else Color.NEGRA
+        color_oponente = self._color_oponente()
         contador_atacante = self._contar_atacantes_casillas(casillas_criticas, color_oponente)
         penalizacion_atacante = contador_atacante * 0.6
 
@@ -174,7 +188,7 @@ class Evaluador:
         puntuacion = shield_bonus - penalizacion_atacante - penalizacion_central
 
         # Devuelve la puntuación normalizada
-        return float(puntuacion * peso)
+        return float(puntuacion)
     
     def evaluar_control_centro(self) -> float:
         """
@@ -182,7 +196,6 @@ class Evaluador:
         para el color evaluado.
         Devuelve un valor positivo si el control favorece al color evaluado.
         """
-        peso = float(self._pesos.get("control_centro", 0.1))
         dim = self._tablero.DIM_TABLERO
 
         centros = self._centros_tablero(dim)
@@ -190,14 +203,14 @@ class Evaluador:
             return 0.0
         
         color_propio = self._color
-        color_oponente = Color.BLANCA if self._color == Color.NEGRA else Color.NEGRA
+        color_oponente = self._color_oponente()
 
         control_propio = sum(1 for casilla in centros if self._casilla_controlada_por(casilla, color_propio))
         control_oponente = sum(1 for casilla in centros if self._casilla_controlada_por(casilla, color_oponente))
 
         # Normalizar por número de casillas centrales y escalar por peso
         puntuacion = (control_propio - control_oponente) / float(len(centros))
-        return puntuacion * peso
+        return float(puntuacion)
 
         
     def _centros_tablero(self, dim: int) -> list:
@@ -257,7 +270,7 @@ class Evaluador:
         generador = Generador_movimientos(self._tablero, self._reglas, color)
         return generador.contar_movimientos_legales()
     
-    def _contar_shields(self, posicion_rey: tuple[int, int], casillas_criticas: list) -> int:
+    def _contar_shields(self, posicion_rey: array, casillas_criticas: list[array]) -> int:
         """
         Cuenta peones propios en las casillas adyacentes al rey (excluyendo la casilla del rey).
         """
@@ -279,7 +292,7 @@ class Evaluador:
         
         return shield
     
-    def _contar_atacantes_casillas(self, casillas_criticas: list, color_oponente: Color) -> int:
+    def _contar_atacantes_casillas(self, casillas_criticas: list[array], color_oponente: Color) -> int:
         """
         Cuenta atacantes únicos del conjunto de casillas críticas por parte del color oponente.
         """
@@ -292,19 +305,19 @@ class Evaluador:
                         atacantes.add(id(pieza))  # identificar pieza por id
                         break
                 # Si reglas falla para una comprobación concreta, ignorarla y continuar
-                except Exception:
+                except (IndexError, ValueError):
                     continue
         return len(atacantes)
 
-    def _casillas_criticas_rey(self, posicion_rey: tuple[int, int], dim: int) ->list:
+    def _casillas_criticas_rey(self, posicion_rey: array | None, dim: int) -> list[array]:
         """
         Devuelve la lista de casillas críticas (casillas de rey + adyacentes) como arrays.
         """
         vecinos = [(0, 0), (-1, -1), (-1, 0), (-1, 1), (0, -1),
                     (0, 1), (1, -1), (1, 0), (1, 1)]
-        casillas: list = []
+        casillas: list[array] = []
 
-        # Comprueba sila posicion del rey existe
+        # Comprueba si la posicion del rey existe
         if posicion_rey is None:
             return casillas
         
@@ -381,13 +394,14 @@ class Evaluador:
                 if not delante_enemigos:
                     pasados += 1
         return pasados
-
     
-    # def es_jaque(self, color: Color) -> bool:
-    #     return self._reglas.es_jaque(color)
 
-    # def es_jaque_mate(self, color: Color) -> bool:
-    #     return self._reglas.es_jaque_mate(color)
+    # Delegar a reglas la detección de los jaques y las tablas
+    def es_jaque(self, color: Color) -> bool:
+        return self._reglas.es_jaque(color)
 
-    # def es_tablas(self) -> bool:
-    #     return self._reglas.es_tablas()
+    def es_jaque_mate(self, color: Color) -> bool:
+        return self._reglas.es_jaque_mate(color)
+
+    def es_tablas(self) -> bool:
+        return self._reglas.es_tablas()
