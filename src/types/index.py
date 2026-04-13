@@ -1,13 +1,13 @@
-class PieceType:
-    PAWN = 'pawn'
-    KNIGHT = 'knight'
-    BISHOP = 'bishop'
-    ROOK = 'rook'
-    QUEEN = 'queen'
-    KING = 'king'
+class TipoPiezas:
+    PEON = 'peon'
+    CABALLO = 'caballo'
+    ALFIL = 'alfil'
+    TORRE = 'torre'
+    REINA = 'reina'
+    REY = 'rey'
 
-class GameState:
-    IN_PROGRESS = 'in_progress'
-    WHITE_WON = 'white_won'
-    BLACK_WON = 'black_won'
-    DRAW = 'draw'
+class EstadoJuego:
+    EN_PROGRESO = 'en_progreso'
+    BLANCO_GANO = 'blanco_gano'
+    NEGRO_GANO = 'negro_gano'
+    EMPATE = 'empate'
