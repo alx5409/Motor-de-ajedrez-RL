@@ -11,7 +11,8 @@ from reglas import Reglas
 
 class Evaluador:
 
-    def __init__(self, tablero: Tablero, reglas: Reglas, color_a_evaluar: Color = Color.BLANCA, pesos: dict = None):
+    def __init__(self, tablero: Tablero, reglas: Reglas, color_a_evaluar: Color = Color.BLANCA,
+                 pesos: dict[str, float] | None = None):
         self._tablero = tablero
         self._reglas = reglas
         self._color = color_a_evaluar
@@ -25,6 +26,19 @@ class Evaluador:
 
     def __repr__(self) -> str:
         return f"Evaluador (color={self._color.name}, pesos_llaves:  {list(self._pesos.keys())})"
+    
+    def _get_pesos(self) -> list[float]:
+        """
+        Devuelve la lista de pesos en el orden esperado por las funciones de evaluación.
+        """
+        # Pesos
+        peso_material = float(self._pesos.get("material", 1.0))
+        peso_movilidad = float(self._pesos.get("movilidad", 0.05))
+        peso_estructura = float(self._pesos.get("estructura_peones", 0.2))
+        peso_seguridad = float(self._pesos.get("seguridad_rey", 0.5))
+        peso_centro = float(self._pesos.get("control_centro", 0.1))
+
+        return [peso_material, peso_movilidad, peso_estructura, peso_seguridad, peso_centro]
 
     def evaluar(self) -> float:
         """
@@ -48,13 +62,9 @@ class Evaluador:
             return mate_valor
         if self._reglas.es_tablas():
             return 0.0
-
-        # Pesos
-        peso_material = float(self._pesos.get("material", 1.0))
-        peso_movilidad = float(self._pesos.get("movilidad", 0.05))
-        peso_estructura = float(self._pesos.get("estructura_peones", 0.2))
-        peso_seguridad = float(self._pesos.get("seguridad_rey", 0.5))
-        peso_centro = float(self._pesos.get("control_centro", 0.1))
+        
+        # Obtener pesos para cada métrica
+        [peso_material, peso_movilidad, peso_estructura, peso_seguridad, peso_centro] = self._get_pesos()
 
         # Métricas parciales (todas desde la perspectiva de self._color)
         material = self.evaluar_material()
@@ -147,7 +157,8 @@ class Evaluador:
         dim = self._tablero.DIM_TABLERO
 
         # Buscar la posición del rey
-        pos_rey = self._tablero.buscar_rey(self._color)
+        rey = self._tablero.buscar_rey(self._color)
+        pos_rey = rey.posicion_actual_entera if rey else None
         # Si no existe la posicion devuelve 0
         if pos_rey is None:
             return 0.0
@@ -296,17 +307,17 @@ class Evaluador:
                     continue
         return len(atacantes)
 
-    def _casillas_criticas_rey(self, posicion_rey: tuple[int, int], dim: int) ->list:
+    def _casillas_criticas_rey(self, posicion_rey: tuple[int, int], dim: int) -> list[array] | None:
         """
         Devuelve la lista de casillas críticas (casillas de rey + adyacentes) como arrays.
         """
         vecinos = [(0, 0), (-1, -1), (-1, 0), (-1, 1), (0, -1),
                     (0, 1), (1, -1), (1, 0), (1, 1)]
-        casillas: list = []
+        casillas: list[array] = []
 
-        # Comprueba sila posicion del rey existe
+        # Comprueba si la posicion del rey existe
         if posicion_rey is None:
-            return casillas
+            raise ValueError("La posición del rey no puede ser None para calcular las casillas críticas.")
         
         fila_rey, columna_rey = int(posicion_rey[0]), int (posicion_rey[1])
         for coordenada_fila, coordenada_columna in vecinos:
