@@ -8,6 +8,7 @@ import numpy as np
 import copy
 
 from color import Color
+
 from piezas import Alfil, Caballo, Dama, Peon, Pieza, Rey, Torre
 
 class EstadoCasilla(Enum):
@@ -16,9 +17,11 @@ class EstadoCasilla(Enum):
     OCUPADA_NEGRA = -1    
 
 class Tablero:
-    DIM_TABLERO = 8                          # Dimensión del tablero estándar 8x8
-    matriz_coordenadas_estandar: list[list]  # Coordenadas estándar ej: ['A', 2]
-    matriz_coordenadas_enteras: np.ndarray   # Representación con coordenadas enteras para la lógica
+    DIM_TABLERO = 8                             # Dimensión del tablero estándar 8x8
+    matriz_coordenadas_estandar: list[list]     # Coordenadas estándar ej: ['A', 2]
+    matriz_coordenadas_enteras: np.ndarray      # Representación con coordenadas enteras para la lógica
+    matriz_piezas: list[list[Pieza]]            # Matriz de referencias a las piezas en el tablero
+    historial: list[tuple[Pieza, array, array]]   # Lista del historial de los movimientos de las piezas
 
     def __init__(self):     
         self.matriz_piezas = [[None for _ in range(self.DIM_TABLERO)] for _ in range(self.DIM_TABLERO)]  # Matriz de referencias a las piezas
